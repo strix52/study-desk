@@ -1,0 +1,125 @@
+:root {
+  --paper: #efe7d6;
+  --panel: rgba(255, 252, 246, 0.84);
+  --ink: #20242b;
+  --muted: #827b6d;
+  --muted-strong: #5d584f;
+  --accent: #a15a27;
+  --border: rgba(81, 67, 44, 0.16);
+  --danger: #a53d35;
+  --completed: #2d8a4e;
+  --in-progress: #c47f17;
+  --panel-shadow:
+    0 12px 32px rgba(62, 52, 36, 0.07),
+    0 4px 12px rgba(62, 52, 36, 0.04);
+  --display: 'Newsreader', serif;
+  --body: 'Source Sans 3', sans-serif;
+  --mono: Consolas, 'SFMono-Regular', monospace;
+  --surface: rgba(248, 242, 228, 0.85);
+  --surface-hover: rgba(248, 242, 228, 0.95);
+  --bg-gradient: linear-gradient(180deg, #ede4d2 0%, #efe8db 40%, #e2d8c4 100%);
+  --bg-glow-1: rgba(190, 139, 81, 0.18);
+  --bg-glow-2: rgba(109, 137, 117, 0.14);
+  --grid-opacity: 0.18;
+  --media-bg: rgba(29, 34, 42, 0.95);
+  --code-bg: rgba(27, 31, 38, 0.95);
+  --code-fg: #f4efe2;
+
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.55;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme='dark'] {
+  --paper: #1a1c20;
+  --panel: rgba(28, 30, 36, 0.92);
+  --ink: #e4ddd0;
+  --muted: #7d776b;
+  --muted-strong: #9e978c;
+  --accent: #d4854a;
+  --border: rgba(200, 186, 160, 0.1);
+  --danger: #e05a52;
+  --completed: #3da363;
+  --in-progress: #d49a3a;
+  --panel-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+  --surface: rgba(40, 42, 50, 0.8);
+  --surface-hover: rgba(50, 52, 60, 0.9);
+  --bg-gradient: linear-gradient(180deg, #1a1c20 0%, #1e2024 40%, #16181c 100%);
+  --bg-glow-1: rgba(190, 139, 81, 0.06);
+  --bg-glow-2: rgba(109, 137, 117, 0.04);
+  --grid-opacity: 0.05;
+  --media-bg: rgba(15, 17, 21, 0.95);
+  --code-bg: rgba(15, 17, 21, 0.95);
+  --code-fg: #d8d3c5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top left, var(--bg-glow-1), transparent 34%),
+    radial-gradient(circle at bottom right, var(--bg-glow-2), transparent 30%),
+    var(--bg-gradient);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--grid-opacity);
+  background-image:
+    linear-gradient(rgba(81, 63, 43, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(81, 63, 43, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at center, black, transparent 78%);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+p {
+  margin: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  isolation: isolate;
+}
+
+@media (max-width: 980px) {
+  :root {
+    font-size: 15px;
+  }
+}
