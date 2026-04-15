@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { CourseIndex, StudyItem, UserState } from '../types'
-import { courseProgress, orderedItems, weekProgress, href } from '../utils/helpers'
+import { courseProgress, weekProgress, href } from '../utils/helpers'
 import { ProgressBar } from './ProgressBar'
-import { Metric } from './Metric'
 
 interface DashboardProps {
   index: CourseIndex
@@ -11,33 +10,28 @@ interface DashboardProps {
 }
 
 export function Dashboard({ index, userState, lastActive }: DashboardProps) {
-  const items = orderedItems(index)
   const overall = courseProgress(index, userState)
-  const bookmarked = items.filter((i) => userState.itemStates[i.id]?.bookmarked).length
 
   return (
     <div className="page page-enter">
-      <section className="card overview-card">
-        <div>
-          <span className="eyebrow">Study desk</span>
-          <h2>Course overview</h2>
-          <p>
-            {overall.total} items across {index.stats.weeks} weeks &middot;{' '}
-            {Math.round(overall.fraction * 100)}% complete
-          </p>
-          <ProgressBar value={overall.fraction} className="overview-progress" />
-          {lastActive ? (
-            <Link className="button primary" to={href(lastActive)}>
-              Resume: {lastActive.title}
-            </Link>
-          ) : null}
-        </div>
-        <div className="overview-stats">
-          <Metric label="Completed" value={overall.completed} />
-          <Metric label="In progress" value={overall.inProgress} />
-          <Metric label="Bookmarked" value={bookmarked} />
-        </div>
-      </section>
+      {lastActive ? (
+        <section className="resume-strip">
+          <span className="resume-label">Resume where you left off</span>
+          <Link className="resume-link" to={href(lastActive)}>
+            {lastActive.title} →
+          </Link>
+          <span className="resume-progress">
+            {overall.completed}/{overall.total} · {Math.round(overall.fraction * 100)}%
+          </span>
+        </section>
+      ) : (
+        <section className="resume-strip">
+          <span className="resume-label">Pick a week to start</span>
+          <span className="resume-progress">
+            {overall.completed}/{overall.total} · {Math.round(overall.fraction * 100)}%
+          </span>
+        </section>
+      )}
 
       <section className="week-grid">
         {index.weeks.map((week) => {

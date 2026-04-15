@@ -46,7 +46,6 @@ import { AssignmentView } from './components/AssignmentView'
 import { CommandPalette } from './components/CommandPalette'
 import { ProgressBar } from './components/ProgressBar'
 import { StatusBadge } from './components/StatusBadge'
-import { Metric } from './components/Metric'
 
 function App() {
   const [payload, setPayload] = useState<BootstrapPayload | null>(null)
@@ -290,22 +289,17 @@ function StudyDesk({
         {/* Left rail */}
         <aside className="panel left-panel">
           <div className="card hero-card">
-            <span className="eyebrow">Offline study desk</span>
-            <h1>{index.courseTitle}</h1>
+            <div className="hero-title-row">
+              <span className="hero-title">{index.courseTitle}</span>
+              <Link className="hero-resume" to={lastActive ? href(lastActive) : '/'}>
+                {lastActive ? 'Resume →' : 'Dashboard →'}
+              </Link>
+            </div>
             <ProgressBar value={overall.fraction} className="hero-progress" />
             <span className="hero-stat">
-              {Math.round(overall.fraction * 100)}% complete &middot; {overall.completed}/
-              {overall.total} items
+              {Math.round(overall.fraction * 100)}% · {overall.completed}/{overall.total} ·{' '}
+              {index.stats.weeks}w · {index.stats.lessons}L · {index.stats.assignments}A
             </span>
-            <Link className="button primary" to={lastActive ? href(lastActive) : '/'}>
-              {lastActive ? 'Resume learning' : 'Open dashboard'}
-            </Link>
-          </div>
-
-          <div className="card stats-card">
-            <Metric label="Weeks" value={index.stats.weeks} />
-            <Metric label="Lessons" value={index.stats.lessons} />
-            <Metric label="Assignments" value={index.stats.assignments} />
           </div>
 
           <div className="card week-list" ref={weekListRef}>
@@ -432,7 +426,8 @@ function StudyDesk({
               <textarea
                 className="note-input"
                 onChange={(e) => updateNote(activeItem.id, e.target.value)}
-                placeholder="Capture notes, revision cues, or next steps..."
+                placeholder="Notes…"
+                rows={3}
                 value={userState.notes[activeItem.id]?.body ?? ''}
               />
             ) : (

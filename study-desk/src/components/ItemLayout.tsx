@@ -53,13 +53,6 @@ export function ItemLayout({
           <h2 className="item-title">{item.title}</h2>
         </div>
         <div className="item-header-actions">
-          <div className={`status-badge compact ${currentStatus}`}>
-            {currentStatus === 'completed'
-              ? 'Done'
-              : currentStatus === 'in-progress'
-                ? 'In progress'
-                : 'Not started'}
-          </div>
           <button
             className={`btn-sm${currentStatus === 'completed' ? ' status-completed' : ''}`}
             onClick={() => setStatus(item.id, currentStatus === 'completed' ? 'not-started' : 'completed')}

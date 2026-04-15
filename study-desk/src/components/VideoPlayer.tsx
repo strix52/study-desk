@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 const SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2]
 
@@ -23,6 +24,7 @@ export function VideoPlayer({
   const lastSaveRef = useRef(0)
   const positionRestored = useRef(false)
   const [toast, setToast] = useState(false)
+  const [speedOpen, setSpeedOpen] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current
@@ -90,18 +92,33 @@ export function VideoPlayer({
         onEnded={handleEnded}
       />
       <div className="video-controls">
-        <span className="video-controls-label">Speed</span>
-        <div className="speed-selector">
-          {SPEEDS.map((s) => (
-            <button
-              key={s}
-              className={`speed-btn${playbackSpeed === s ? ' active' : ''}`}
-              onClick={() => onSpeedChange(s)}
-              type="button"
-            >
-              {s}x
-            </button>
-          ))}
+        <div className="speed-popover-wrap">
+          <button
+            className="speed-trigger"
+            onClick={() => setSpeedOpen((v) => !v)}
+            type="button"
+            title="Playback speed"
+          >
+            {playbackSpeed}x
+            <ChevronDown size={12} />
+          </button>
+          {speedOpen && (
+            <div className="speed-popover" onMouseLeave={() => setSpeedOpen(false)}>
+              {SPEEDS.map((s) => (
+                <button
+                  key={s}
+                  className={`speed-option${playbackSpeed === s ? ' active' : ''}`}
+                  onClick={() => {
+                    onSpeedChange(s)
+                    setSpeedOpen(false)
+                  }}
+                  type="button"
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       {toast && <div className="video-toast">Lesson complete</div>}

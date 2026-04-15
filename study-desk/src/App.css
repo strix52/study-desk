@@ -10,7 +10,6 @@
 
 .panel,
 .workspace,
-.overview-stats,
 .assignment-grid {
   display: grid;
   gap: 14px;
@@ -33,14 +32,9 @@
   box-shadow: var(--panel-shadow);
 }
 
-.hero-card,
-.stats-card,
 .week-list,
-.note-card,
-.utility-card,
 .page-card,
 .viewer-card,
-.overview-card,
 .week-card,
 .timeline-card,
 .message-card,
@@ -49,14 +43,22 @@
   padding: 20px;
 }
 
+.note-card,
+.utility-card {
+  padding: 14px 16px;
+}
+
+.hero-card {
+  padding: 14px 16px;
+}
+
 /* ===== Headings ===== */
 
-.hero-card h1,
-.overview-card h2,
 .page-card h2,
 .state-card h2 {
   margin: 6px 0 8px;
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .week-card h3 {
@@ -69,32 +71,55 @@
   font-size: 1.1rem;
 }
 
-/* ===== Metrics ===== */
+/* ===== Resume strip (dashboard) ===== */
 
-.stats-card,
-.overview-stats {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.resume-strip {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--panel-shadow);
+  flex-wrap: wrap;
 }
 
-.metric {
-  display: grid;
-  gap: 4px;
-  padding: 10px;
-  border-radius: 12px;
-  background: var(--surface);
-  text-align: center;
+.resume-label {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  flex-shrink: 0;
 }
 
-.metric strong {
-  font-size: 1.4rem;
+.resume-link {
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resume-link:hover {
+  color: var(--accent);
+}
+
+.resume-progress {
+  font-size: 0.78rem;
+  color: var(--muted);
+  flex-shrink: 0;
 }
 
 /* ===== Week list (left rail) ===== */
 
 .week-list {
   align-content: start;
-  max-height: calc(100svh - 340px);
+  max-height: calc(100svh - 160px);
   overflow-y: auto;
 }
 
@@ -160,20 +185,54 @@
 }
 
 .week-title {
-  font-family: var(--display);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
 }
 
 /* ===== Hero card ===== */
 
 .hero-card {
   display: grid;
+  gap: 7px;
+}
+
+.hero-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 10px;
+  min-width: 0;
+}
+
+.hero-title {
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.hero-resume {
+  font-size: 0.78rem;
+  color: var(--accent);
+  white-space: nowrap;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.hero-resume:hover {
+  text-decoration: underline;
 }
 
 .hero-stat {
-  font-size: 0.84rem;
+  font-size: 0.75rem;
   color: var(--muted);
+  letter-spacing: 0.01em;
 }
 
 /* ===== Topbar ===== */
@@ -366,16 +425,6 @@
   height: 3px;
 }
 
-.overview-progress {
-  margin: 8px 0;
-  height: 6px;
-  border-radius: 3px;
-}
-
-.overview-progress .progress-bar-fill {
-  border-radius: 3px;
-}
-
 .timeline-progress {
   margin-top: 2px;
 }
@@ -384,26 +433,6 @@
 
 .week-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-/* ===== Overview card ===== */
-
-.overview-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.9fr);
-  gap: 20px;
-  align-items: start;
-  background:
-    radial-gradient(
-      circle at top left,
-      color-mix(in srgb, var(--accent) 12%, transparent),
-      transparent 36%
-    ),
-    var(--panel);
-}
-
-.overview-card .button {
-  margin-top: 8px;
 }
 
 /* ===== Chips ===== */
@@ -520,6 +549,9 @@
 }
 
 .item-title {
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
   font-size: clamp(1.1rem, 2vw, 1.45rem);
   line-height: 1.3;
   white-space: nowrap;
@@ -532,12 +564,6 @@
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
-}
-
-.status-badge.compact {
-  font-size: 0.7rem;
-  padding: 3px 10px;
-  margin-right: 4px;
 }
 
 .btn-sm {
@@ -651,44 +677,69 @@
 .video-controls {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
-  padding: 10px 0 0;
+  padding: 8px 0 0;
 }
 
-.video-controls-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
+.speed-popover-wrap {
+  position: relative;
 }
 
-.speed-selector {
-  display: flex;
+.speed-trigger {
+  display: inline-flex;
+  align-items: center;
   gap: 4px;
-}
-
-.speed-btn {
-  padding: 5px 10px;
-  border-radius: 999px;
+  padding: 4px 10px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
+  color: var(--muted-strong);
   cursor: pointer;
-  font-size: 0.8rem;
-  color: var(--ink);
-  transition:
-    background 120ms ease,
-    color 120ms ease;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  transition: background 120ms ease;
 }
 
-.speed-btn:hover {
+.speed-trigger:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+
+.speed-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 20;
+  display: grid;
+  gap: 2px;
+  padding: 4px;
+  min-width: 76px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--panel-shadow);
+}
+
+.speed-option {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  cursor: pointer;
+}
+
+.speed-option:hover {
   background: var(--surface-hover);
 }
 
-.speed-btn.active {
+.speed-option.active {
   background: var(--ink);
   color: var(--paper);
-  border-color: var(--ink);
 }
 
 .video-toast {
@@ -722,13 +773,17 @@
 
 .note-input {
   width: 100%;
-  min-height: 200px;
+  min-height: 72px;
+  max-height: 340px;
+  field-sizing: content;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surface);
-  padding: 14px;
+  padding: 10px 12px;
   color: var(--ink);
   resize: vertical;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .note-input:focus {
@@ -1026,9 +1081,6 @@
   }
 
   .week-grid,
-  .overview-card,
-  .overview-stats,
-  .stats-card,
   .pager,
   .timeline-card {
     grid-template-columns: 1fr;
