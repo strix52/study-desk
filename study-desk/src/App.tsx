@@ -19,6 +19,7 @@ import {
 import {
   FileCode2,
   FileText,
+  Keyboard,
   LibraryBig,
   Moon,
   RefreshCcw,
@@ -88,6 +89,7 @@ function StudyDesk({
   const [query, setQuery] = useState('')
   const [message, setMessage] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const deferredQuery = useDeferredValue(query)
@@ -221,7 +223,10 @@ function StudyDesk({
           target.isContentEditable ||
           Boolean(target.closest('input, textarea, [contenteditable="true"]')))
       if (isTyping) {
-        if (e.key === 'Escape') setPaletteOpen(false)
+        if (e.key === 'Escape') {
+          setPaletteOpen(false)
+          setShortcutsOpen(false)
+        }
         return
       }
       if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -236,6 +241,7 @@ function StudyDesk({
       }
       if (e.key === 'Escape') {
         setPaletteOpen(false)
+        setShortcutsOpen(false)
         return
       }
       if (paletteOpen || e.ctrlKey || e.metaKey || e.altKey) return
@@ -412,6 +418,33 @@ function StudyDesk({
               <span>Jump to any week, lesson, or assignment</span>
               <kbd>Ctrl K</kbd>
             </button>
+            <div className="shortcuts-wrap">
+              <button
+                className={`icon-button${shortcutsOpen ? ' active' : ''}`}
+                onClick={() => setShortcutsOpen((value) => !value)}
+                type="button"
+                title="Show keyboard shortcuts"
+              >
+                <Keyboard size={16} />
+              </button>
+              {shortcutsOpen && (
+                <div className="shortcuts-popover" onMouseLeave={() => setShortcutsOpen(false)}>
+                  <div className="section-row">
+                    <strong>Shortcuts</strong>
+                    <small>Learning mode</small>
+                  </div>
+                  <div className="shortcuts-list">
+                    <ShortcutHint keys={['Ctrl', 'K']} label="Open command palette" />
+                    <ShortcutHint keys={['/']} label="Open command palette" />
+                    <ShortcutHint keys={['N']} label="Next lesson or assignment" />
+                    <ShortcutHint keys={['P']} label="Previous lesson or assignment" />
+                    <ShortcutHint keys={['M']} label="Mark complete / undo" />
+                    <ShortcutHint keys={['B']} label="Bookmark / unbookmark" />
+                    <ShortcutHint keys={['Esc']} label="Close menus" />
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               className="icon-button"
               onClick={toggleTheme}
@@ -634,6 +667,19 @@ function NotesList({
           {expanded ? 'Show less' : `Show all ${notes.length}`}
         </button>
       )}
+    </div>
+  )
+}
+
+function ShortcutHint({ keys, label }: { keys: string[]; label: string }) {
+  return (
+    <div className="shortcut-row">
+      <span className="shortcut-keys">
+        {keys.map((key) => (
+          <kbd key={key}>{key}</kbd>
+        ))}
+      </span>
+      <span>{label}</span>
     </div>
   )
 }

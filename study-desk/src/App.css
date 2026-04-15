@@ -302,6 +302,10 @@
   gap: 10px;
 }
 
+.shortcuts-wrap {
+  position: relative;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -417,6 +421,11 @@
 
 .icon-button:hover {
   background: var(--surface-hover);
+}
+
+.icon-button.active {
+  background: var(--surface-hover);
+  border-color: var(--accent);
 }
 
 /* ===== Status indicators ===== */
@@ -1068,6 +1077,55 @@
 
 .palette-empty {
   padding: 16px;
+  text-align: center;
+}
+
+.shortcuts-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: min(320px, 80vw);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--panel-shadow);
+}
+
+.shortcuts-list {
+  display: grid;
+  gap: 8px;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.88rem;
+}
+
+.shortcut-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.shortcut-keys kbd {
+  min-width: 30px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: 0.76rem;
   text-align: center;
 }
 

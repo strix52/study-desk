@@ -74,18 +74,147 @@ After v2, the lesson page had a critical layout problem: the video player was pu
 - **No remote configured yet** — push was attempted but failed; user needs to add a remote with `git remote add origin <url>`
 - The 31 `Week -` folders (tens of GB of video content) are excluded from git via `.gitignore`
 
+### v2.3 — UI tightening pass (COMPLETED)
+
+This was a focused cleanup pass to make the app denser and less wasteful on screen without changing the underlying local-first architecture.
+
+**Changes made:**
+
+1. **Left rail compacted**
+   - Hero card slimmed down to a one-line title + inline resume link
+   - Separate left-rail stats card removed to give more vertical room to the curriculum list
+
+2. **Dashboard simplified**
+   - Old course overview metrics block removed
+   - Dashboard now opens on a resume strip + dominant week cards layout
+
+3. **Item header tightened**
+   - Redundant textual status badge removed
+   - Lit icon buttons are the single source of truth for complete / in-progress / bookmarked state
+
+4. **Notes input refined**
+   - Smaller default note box
+   - `field-sizing: content` enabled for auto-growth
+   - Placeholder shortened
+
+5. **Video speed controls reduced**
+   - Full 6-button speed strip replaced with a compact popover trigger
+
+6. **Typography adjusted**
+   - Default `h1/h2/h3` moved to sans-serif
+   - Newsreader serif reserved for the item title where emphasis is useful
+
+7. **CSS cleanup**
+   - Dead `Metric` component removed
+   - Old overview/stats styles removed
+
+### v2.4 — Learning-flow improvements (COMPLETED)
+
+This pass was explicitly scoped for the user's **personal learning workflow**, not for customer-facing polish. The goal was to reduce friction in sequential studying, improve progress accuracy, and make resume behavior more trustworthy.
+
+**Changes made:**
+
+1. **Video progress reliability fixed**
+   - `VideoPlayer.tsx` now saves the current position on component unmount
+   - This closes the navigation-loss gap where switching lessons could lose the last few seconds of watch position
+
+2. **Auto-complete threshold added**
+   - Videos now mark complete at `>=95%` watched instead of only on the native `ended` event
+   - This avoids "ghost in-progress" items when the user finishes the meaningful content but skips trailing credits/outro
+
+3. **Duplicate completion prevented**
+   - Completion logic was guarded so the `95%` threshold and native `ended` event do not both fire completion handling
+
+4. **`lastActiveItemId` made more accurate**
+   - Opening an item still records it as recent and marks it in-progress
+   - But `lastActiveItemId` is no longer updated on every click/mount
+   - Instead, lesson and assignment views promote an item to "last active" only after roughly 5 seconds of dwell time
+   - This keeps Resume pointing at what the user actually studied rather than whatever they glanced at
+
+5. **Keyboard shortcuts added**
+   - `/` opens the command palette
+   - `N` goes to the next lesson/assignment
+   - `P` goes to the previous lesson/assignment
+   - `M` toggles complete / not-started on the active item
+   - `B` toggles bookmark on the active item
+   - `Esc` closes menus
+   - All of these are guarded so they do not fire while the user is typing in an input/textarea/contenteditable field
+
+6. **Command palette empty state improved**
+   - Empty query no longer shows an unhelpful alphabetical dump
+   - It now shows a personal-use blend of **Recents** and **Next up**
+   - Falls back to generic results only if there is not enough personal state yet
+
+7. **Dashboard continue flow improved**
+   - Dashboard now shows a 3-item continue queue instead of only a single resume link
+   - The queue starts from the current last-active item and then shows the next unfinished items
+
+8. **Remaining-time metric surfaced**
+   - Helper logic aggregates stored video durations and playback positions
+   - Dashboard now shows the estimated remaining time across unfinished tracked videos
+   - This uses existing data already being stored in `itemStates`
+
+9. **Week re-entry made faster**
+   - `WeekView.tsx` now includes an `Incomplete only` toggle
+   - This is a pure view filter; it does not mutate progress state
+   - If a week is fully done and the filter is enabled, the view shows an "Everything in this week is complete" state
+
+10. **Verification completed**
+   - `npm run lint` passed
+   - `npx tsc -b --noEmit` passed
+   - `npm run build` passed
+
+### v2.4.1 — Shortcut discoverability help (CURRENT WORKING TREE)
+
+After v2.4, the user correctly pointed out that keyboard shortcuts are hard to learn if they are invisible. A small discoverability surface has now been added in the top bar.
+
+**Changes made:**
+
+1. **Shortcuts help button**
+   - A keyboard icon button was added beside the search trigger in the top bar
+
+2. **Shortcuts popover**
+   - Clicking the button opens a small popover listing the current supported shortcuts:
+     - `Ctrl + K`
+     - `/`
+     - `N`
+     - `P`
+     - `M`
+     - `B`
+     - `Esc`
+
+3. **Popover behavior**
+   - The shortcuts popover closes on `Esc`
+   - It also closes on mouse leave
+
+4. **Verification completed**
+   - `npm run lint` passed
+   - `npx tsc -b --noEmit` passed
+   - `npm run build` passed
+
+**Note:** This shortcuts-help change is currently reflected in the working tree and should be treated as part of the latest live context even if a future agent sees it as not yet committed.
+
 ## 3. Current Status
 
 ### What works
 
 - Full study desk app: dashboard, week view, lesson view, assignment view
 - Video playback with resume, speed control, auto-complete
+- Video position persistence on unmount/navigation
+- Auto-complete at `>=95%` watched
 - Progress tracking (completion status, video position/duration, bookmarks)
+- More trustworthy resume tracking via delayed engagement-based `lastActiveItemId`
 - Notes per item, browsable notes list
 - Dark mode (persisted)
-- Command palette search (Ctrl+K)
+- Command palette search (`Ctrl+K` and `/`)
+- Empty command palette shows Recents + Next up
+- Keyboard shortcuts for next/previous/complete/bookmark
+- In-app shortcuts help popover in the top bar
 - Left rail curriculum map with active highlighting
 - Right rail with notes, bookmarks, recents, next-up
+- Dashboard continue queue (3 items)
+- Dashboard remaining-time metric for unfinished tracked videos
+- Week view `Incomplete only` filter
 - Local file/folder/editor open actions
 - One-click launcher (`start-study-desk.bat`)
 
@@ -113,7 +242,7 @@ These are features/improvements that were discussed or are natural next steps bu
 2. **Embedded database** — state uses JSON files, not SQLite or another DB
 3. **External data folder** — app data lives under `study-desk/.study-desk-data/` rather than an external sidecar location
 4. **Mobile/tablet optimization** — responsive breakpoints exist but haven't been thoroughly tested on small screens
-5. **Keyboard shortcuts beyond Ctrl+K** — no vim-style navigation, no hotkeys for mark-complete/bookmark etc.
+5. **Advanced keyboard system** — basic personal-use shortcuts now exist, but there is still no broader shortcut system such as customizable bindings, per-view overlays, vim-style navigation, or rich shortcut scopes
 6. **Batch operations** — no "mark all in week as complete", no bulk status changes
 7. **Spaced repetition / review scheduling** — no SRS-style review prompts
 8. **Export/import of study state** — no way to backup/restore progress beyond the raw JSON file
@@ -246,7 +375,7 @@ study-desk/.study-desk-data/
 - `itemStates: Record<string, ItemState>` — per-item status, bookmarked, playbackPosition, duration
 - `notes: Record<string, NoteEntry>` — per-item notes
 - `recent: RecentEntry[]` — recently visited items
-- `lastActiveItemId?: string` — for resume-learning
+- `lastActiveItemId?: string` — for resume-learning; updated after real dwell/engagement rather than every click
 - `playbackSpeed?: number` — globally persisted
 - `theme?: 'light' | 'dark'` — persisted
 
@@ -299,12 +428,15 @@ npx eslint src/
 4. **Vite config quirk** — the active config is `vite.config.mjs` (not `vite.config.ts`).
 
 5. **Video position save granularity** — saved every 5s during playback and on pause/end. A crash could lose up to 5s of position data.
+   Navigation-away loss is largely fixed because unmount now forces a save, but abrupt crashes can still lose a few seconds.
 
 6. **CSS `color-mix()` usage** — requires Chrome 111+, Firefox 113+, Safari 16.2+. Fine for a local personal app.
 
 7. **No git remote** — initial commit exists on `main` branch but no remote is configured.
 
 8. **No automated tests** — the app passes type-check and lint, but there's no test suite. Manual runtime verification is recommended.
+
+9. **Shortcut help is UI-only** — the top-bar shortcut popover is a discoverability aid, not a full help modal or onboarding system.
 
 ## 10. Implementation Decisions
 
@@ -339,6 +471,7 @@ Optimize for:
 - preserving the non-destructive boundary
 - improving UI polish and usability without breaking local functionality
 - keeping navigation fast for sequential study
+- keeping resume/progress behavior trustworthy for personal learning use
 - keeping persistence simple and reliable
 - avoiding rewrites unless clearly justified
 
