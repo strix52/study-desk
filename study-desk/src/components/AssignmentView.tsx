@@ -9,6 +9,7 @@ interface AssignmentViewProps {
   items: StudyItem[]
   userState: UserState
   onVisit: (item: StudyItem) => void
+  onEngage: (itemId: string) => void
   setStatus: (itemId: string, status: StudyStatus) => void
   toggleBookmark: (itemId: string) => void
   onOpenPath: (relativePath: string, action: 'folder' | 'file' | 'editor') => Promise<void>
@@ -16,7 +17,7 @@ interface AssignmentViewProps {
 
 export function AssignmentView(props: AssignmentViewProps) {
   const itemId = useParams().itemId
-  const { items, onVisit } = props
+  const { items, onVisit, onEngage } = props
   const assignment = items.find(
     (item): item is AssignmentItem => item.id === itemId && item.kind === 'assignment',
   )
@@ -25,6 +26,12 @@ export function AssignmentView(props: AssignmentViewProps) {
     if (assignment) onVisit(assignment)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignment?.id])
+
+  useEffect(() => {
+    if (!assignment) return
+    const timeout = window.setTimeout(() => onEngage(assignment.id), 5000)
+    return () => window.clearTimeout(timeout)
+  }, [assignment, onEngage])
 
   if (!assignment) {
     return (

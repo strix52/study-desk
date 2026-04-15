@@ -39,7 +39,8 @@
 .timeline-card,
 .message-card,
 .state-card,
-.inner-card {
+.inner-card,
+.continue-card {
   padding: 20px;
 }
 
@@ -113,6 +114,65 @@
   font-size: 0.78rem;
   color: var(--muted);
   flex-shrink: 0;
+}
+
+.continue-card {
+  display: grid;
+  gap: 12px;
+}
+
+.continue-list {
+  display: grid;
+  gap: 10px;
+}
+
+.continue-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.continue-link:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.continue-index {
+  display: inline-grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.continue-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.continue-copy strong,
+.continue-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ===== Week list (left rail) ===== */

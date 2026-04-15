@@ -9,6 +9,7 @@ interface LessonViewProps {
   items: StudyItem[]
   userState: UserState
   onVisit: (item: StudyItem) => void
+  onEngage: (itemId: string) => void
   setStatus: (itemId: string, status: StudyStatus) => void
   toggleBookmark: (itemId: string) => void
   onOpenPath: (relativePath: string, action: 'folder' | 'file' | 'editor') => Promise<void>
@@ -18,7 +19,7 @@ interface LessonViewProps {
 
 export function LessonView(props: LessonViewProps) {
   const itemId = useParams().itemId
-  const { items, userState, onVisit, onVideoProgress, onSpeedChange, setStatus } = props
+  const { items, userState, onVisit, onEngage, onVideoProgress, onSpeedChange, setStatus } = props
   const lesson = items.find(
     (item): item is LessonItem => item.id === itemId && item.kind === 'lesson',
   )
@@ -27,6 +28,12 @@ export function LessonView(props: LessonViewProps) {
     if (lesson) onVisit(lesson)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lesson?.id])
+
+  useEffect(() => {
+    if (!lesson) return
+    const timeout = window.setTimeout(() => onEngage(lesson.id), 5000)
+    return () => window.clearTimeout(timeout)
+  }, [lesson, onEngage])
 
   if (!lesson) {
     return (

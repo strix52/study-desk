@@ -23,6 +23,7 @@ export function VideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null)
   const lastSaveRef = useRef(0)
   const positionRestored = useRef(false)
+  const completionTriggered = useRef(false)
   const [toast, setToast] = useState(false)
   const [speedOpen, setSpeedOpen] = useState(false)
 
@@ -30,6 +31,7 @@ export function VideoPlayer({
     const video = videoRef.current
     if (!video) return
     positionRestored.current = false
+    completionTriggered.current = false
 
     function handleLoaded() {
       if (!video) return
@@ -58,11 +60,24 @@ export function VideoPlayer({
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current
     if (!video || !positionRestored.current) return
+    if (
+      !completionTriggered.current &&
+      Number.isFinite(video.duration) &&
+      video.duration > 0 &&
+      video.currentTime / video.duration >= 0.95
+    ) {
+      completionTriggered.current = true
+      onProgress(video.duration, video.duration)
+      onEnded()
+      setToast(true)
+      window.setTimeout(() => setToast(false), 3000)
+      return
+    }
     const now = Date.now()
     if (now - lastSaveRef.current < 5000) return
     lastSaveRef.current = now
     onProgress(video.currentTime, video.duration)
-  }, [onProgress])
+  }, [onEnded, onProgress])
 
   const handlePause = useCallback(() => {
     const video = videoRef.current
@@ -73,11 +88,22 @@ export function VideoPlayer({
 
   const handleEnded = useCallback(() => {
     const video = videoRef.current
+    if (completionTriggered.current) return
+    completionTriggered.current = true
     if (video) onProgress(video.duration, video.duration)
     onEnded()
     setToast(true)
-    setTimeout(() => setToast(false), 3000)
+    window.setTimeout(() => setToast(false), 3000)
   }, [onEnded, onProgress])
+
+  useEffect(() => {
+    const video = videoRef.current
+    return () => {
+      if (video && positionRestored.current) {
+        onProgress(video.currentTime, video.duration)
+      }
+    }
+  }, [onProgress])
 
   return (
     <div className="video-player">

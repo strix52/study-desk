@@ -7,9 +7,24 @@ interface DashboardProps {
   index: CourseIndex
   userState: UserState
   lastActive?: StudyItem
+  continueQueue: StudyItem[]
+  remainingVideoSeconds: number
+  remainingVideoCount: number
 }
 
-export function Dashboard({ index, userState, lastActive }: DashboardProps) {
+function formatHours(totalSeconds: number) {
+  const hours = totalSeconds / 3600
+  return hours >= 10 ? `${hours.toFixed(1)}h` : `${hours.toFixed(2)}h`
+}
+
+export function Dashboard({
+  index,
+  userState,
+  lastActive,
+  continueQueue,
+  remainingVideoSeconds,
+  remainingVideoCount,
+}: DashboardProps) {
   const overall = courseProgress(index, userState)
 
   return (
@@ -30,6 +45,30 @@ export function Dashboard({ index, userState, lastActive }: DashboardProps) {
           <span className="resume-progress">
             {overall.completed}/{overall.total} · {Math.round(overall.fraction * 100)}%
           </span>
+        </section>
+      )}
+
+      {continueQueue.length > 0 && (
+        <section className="card continue-card">
+          <div className="section-row">
+            <strong>Continue queue</strong>
+            <small>
+              {formatHours(remainingVideoSeconds)} remaining · {remainingVideoCount} unfinished videos
+            </small>
+          </div>
+          <div className="continue-list">
+            {continueQueue.map((item, index) => (
+              <Link className="continue-link" key={item.id} to={href(item)}>
+                <span className="continue-index">#{index + 1}</span>
+                <span className="continue-copy">
+                  <strong>{item.title}</strong>
+                  <small>
+                    {item.weekLabel} · {item.kind === 'lesson' ? item.lessonType : 'assignment'}
+                  </small>
+                </span>
+              </Link>
+            ))}
+          </div>
         </section>
       )}
 

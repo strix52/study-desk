@@ -85,7 +85,7 @@ export function nextQueue(items: StudyItem[], userState: UserState): StudyItem[]
   return rotated.filter((i) => userState.itemStates[i.id]?.status !== 'completed').slice(0, 6)
 }
 
-export function searchResults(index: CourseIndex, query: string): SearchResult[] {
+export function searchResults(index: CourseIndex, userState: UserState, query: string): SearchResult[] {
   const records: SearchResult[] = index.weeks.flatMap((week) => [
     {
       id: week.id,
@@ -100,8 +100,49 @@ export function searchResults(index: CourseIndex, query: string): SearchResult[]
       to: href(item),
     })),
   ])
-  if (!query.trim()) return records.slice(0, 12)
+  if (!query.trim()) {
+    const items = orderedItems(index)
+    const recentResults = userState.recent
+      .map((entry) => items.find((item) => item.id === entry.itemId))
+      .filter((item): item is StudyItem => Boolean(item))
+      .slice(0, 6)
+      .map((item) => ({
+        id: `recent-${item.id}`,
+        title: item.title,
+        subtitle: `Recent · ${item.weekLabel} · ${item.kind === 'lesson' ? item.lessonType : 'assignment'}`,
+        to: href(item),
+      }))
+    const recentIds = new Set(recentResults.map((result) => result.to))
+    const queueResults = nextQueue(items, userState)
+      .filter((item) => !recentIds.has(href(item)))
+      .slice(0, 8)
+      .map((item) => ({
+        id: `next-${item.id}`,
+        title: item.title,
+        subtitle: `Next up · ${item.weekLabel} · ${item.kind === 'lesson' ? item.lessonType : 'assignment'}`,
+        to: href(item),
+      }))
+    const suggested = [...recentResults, ...queueResults].slice(0, 14)
+    return suggested.length > 0 ? suggested : records.slice(0, 12)
+  }
   return records.filter((r) =>
     `${r.title} ${r.subtitle}`.toLowerCase().includes(query.trim().toLowerCase()),
   )
+}
+
+export function remainingVideoTime(items: StudyItem[], userState: UserState) {
+  let totalSeconds = 0
+  let remainingCount = 0
+
+  for (const item of items) {
+    if (item.kind !== 'lesson' || item.lessonType !== 'video') continue
+    const state = userState.itemStates[item.id]
+    const duration = state?.duration ?? 0
+    if (!duration || duration <= 0) continue
+    if (state?.status === 'completed') continue
+    remainingCount += 1
+    totalSeconds += Math.max(0, duration - (state?.playbackPosition ?? 0))
+  }
+
+  return { totalSeconds, remainingCount }
 }

@@ -35,6 +35,7 @@ import {
   normalizeState,
   nextQueue,
   orderedItems,
+  remainingVideoTime,
   recentTrail,
   searchResults,
   weekProgress,
@@ -134,7 +135,15 @@ function StudyDesk({
     [userState.recent, itemMap],
   )
   const nextUp = useMemo(() => nextQueue(items, userState), [items, userState])
-  const results = searchResults(index, deferredQuery)
+  const results = searchResults(index, userState, deferredQuery)
+  const remainingTime = useMemo(() => remainingVideoTime(items, userState), [items, userState])
+  const continueQueue = useMemo(() => {
+    if (!lastActive) return nextUp.slice(0, 3)
+    return [lastActive, ...nextUp.filter((item) => item.id !== lastActive.id)].slice(0, 3)
+  }, [lastActive, nextUp])
+  const activeItemIndex = activeItem ? items.findIndex((item) => item.id === activeItem.id) : -1
+  const previousItem = activeItemIndex > 0 ? items[activeItemIndex - 1] : undefined
+  const nextItem = activeItemIndex >= 0 ? items[activeItemIndex + 1] : undefined
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -145,23 +154,10 @@ function StudyDesk({
     return () => window.clearTimeout(timeout)
   }, [userState])
 
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        setPaletteOpen((o) => !o)
-      }
-      if (e.key === 'Escape') setPaletteOpen(false)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
-
   const visitItem = useCallback((item: StudyItem) => {
     setUserState((state) =>
       normalizeState({
         ...state,
-        lastActiveItemId: item.id,
         itemStates: {
           ...state.itemStates,
           [item.id]: {
@@ -173,6 +169,15 @@ function StudyDesk({
           },
         },
         recent: recentTrail(state.recent, item.id),
+      }),
+    )
+  }, [])
+
+  const markEngaged = useCallback((itemId: string) => {
+    setUserState((state) =>
+      normalizeState({
+        ...state,
+        lastActiveItemId: itemId,
       }),
     )
   }, [])
@@ -205,6 +210,59 @@ function StudyDesk({
       }),
     )
   }, [])
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const target = e.target
+      const isTyping =
+        target instanceof HTMLElement &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          Boolean(target.closest('input, textarea, [contenteditable="true"]')))
+      if (isTyping) {
+        if (e.key === 'Escape') setPaletteOpen(false)
+        return
+      }
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault()
+        setPaletteOpen(true)
+        return
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen((o) => !o)
+        return
+      }
+      if (e.key === 'Escape') {
+        setPaletteOpen(false)
+        return
+      }
+      if (paletteOpen || e.ctrlKey || e.metaKey || e.altKey) return
+      if (activeItem && e.key.toLowerCase() === 'm') {
+        e.preventDefault()
+        const status = userState.itemStates[activeItem.id]?.status
+        setStatus(activeItem.id, status === 'completed' ? 'not-started' : 'completed')
+        return
+      }
+      if (activeItem && e.key.toLowerCase() === 'b') {
+        e.preventDefault()
+        toggleBookmark(activeItem.id)
+        return
+      }
+      if (nextItem && e.key.toLowerCase() === 'n') {
+        e.preventDefault()
+        navigate(href(nextItem))
+        return
+      }
+      if (previousItem && e.key.toLowerCase() === 'p') {
+        e.preventDefault()
+        navigate(href(previousItem))
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [activeItem, navigate, nextItem, paletteOpen, previousItem, setStatus, toggleBookmark, userState.itemStates])
 
   const updateNote = useCallback((itemId: string, body: string) => {
     setUserState((state) =>
@@ -368,7 +426,14 @@ function StudyDesk({
             <Route
               path="/"
               element={
-                <Dashboard index={index} userState={userState} lastActive={lastActive} />
+                <Dashboard
+                  index={index}
+                  userState={userState}
+                  lastActive={lastActive}
+                  continueQueue={continueQueue}
+                  remainingVideoSeconds={remainingTime.totalSeconds}
+                  remainingVideoCount={remainingTime.remainingCount}
+                />
               }
             />
             <Route
@@ -382,6 +447,7 @@ function StudyDesk({
                   items={items}
                   userState={userState}
                   onVisit={visitItem}
+                  onEngage={markEngaged}
                   setStatus={setStatus}
                   toggleBookmark={toggleBookmark}
                   onOpenPath={openPath}
@@ -397,6 +463,7 @@ function StudyDesk({
                   items={items}
                   userState={userState}
                   onVisit={visitItem}
+                  onEngage={markEngaged}
                   setStatus={setStatus}
                   toggleBookmark={toggleBookmark}
                   onOpenPath={openPath}

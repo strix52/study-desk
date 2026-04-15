@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { CourseIndex, StudyItem, UserState } from '../types'
 import { weekProgress, href, description } from '../utils/helpers'
@@ -13,6 +14,7 @@ interface WeekViewProps {
 export function WeekView({ index, userState, onOpen }: WeekViewProps) {
   const weekNumber = Number.parseInt(useParams().weekNumber ?? '', 10)
   const week = index.weeks.find((w) => w.weekNumber === weekNumber)
+  const [incompleteOnly, setIncompleteOnly] = useState(false)
 
   if (!week) {
     return (
@@ -32,12 +34,15 @@ export function WeekView({ index, userState, onOpen }: WeekViewProps) {
     | { type: 'header'; label: string; key: string }
     | { type: 'item'; item: StudyItem; num: number; key: string }
 
+  const visibleItems = incompleteOnly
+    ? items.filter((item) => userState.itemStates[item.id]?.status !== 'completed')
+    : items
   const sections: Section[] = []
   let currentPart: string | undefined
   let assignmentHeaderShown = false
   let itemNum = 0
 
-  for (const item of items) {
+  for (const item of visibleItems) {
     if (item.kind === 'lesson' && item.partLabel && item.partLabel !== currentPart) {
       currentPart = item.partLabel
       sections.push({ type: 'header', label: item.partLabel, key: `header-${item.partLabel}` })
@@ -53,13 +58,30 @@ export function WeekView({ index, userState, onOpen }: WeekViewProps) {
   return (
     <div className="page page-enter">
       <section className="card page-card">
-        <span className="eyebrow">{week.weekLabel}</span>
-        <h2>{week.title}</h2>
+        <div className="section-row">
+          <div>
+            <span className="eyebrow">{week.weekLabel}</span>
+            <h2>{week.title}</h2>
+          </div>
+          <button
+            className={`button subtle${incompleteOnly ? ' status-in-progress' : ''}`}
+            onClick={() => setIncompleteOnly((value) => !value)}
+            type="button"
+          >
+            {incompleteOnly ? 'Show all' : 'Incomplete only'}
+          </button>
+        </div>
         <ProgressBar value={progress.fraction} />
         <p>
           {progress.completed}/{progress.total} complete across lectures and assignments
         </p>
       </section>
+
+      {sections.length === 0 && (
+        <section className="card page-card">
+          <p>Everything in this week is complete.</p>
+        </section>
+      )}
 
       {sections.map((section) => {
         if (section.type === 'header') {
