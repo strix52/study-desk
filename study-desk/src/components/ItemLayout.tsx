@@ -1,16 +1,18 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
   Bookmark,
   CheckCircle2,
+  ChevronDown,
   CircleDashed,
   FileText,
   FolderOpen,
+  Pencil,
 } from 'lucide-react'
 import type { StudyItem, StudyStatus, UserState } from '../types'
-import { description, href } from '../utils/helpers'
+import { href } from '../utils/helpers'
 
 interface ItemLayoutProps {
   item: StudyItem
@@ -39,63 +41,71 @@ export function ItemLayout({
   const next = items[index + 1]
   const crossesWeekPrev = previous && previous.weekNumber !== item.weekNumber
   const crossesWeekNext = next && next.weekNumber !== item.weekNumber
+  const [moreOpen, setMoreOpen] = useState(false)
 
   return (
     <div className="page page-enter">
-      <section className="card page-card">
-        <span className="eyebrow">
-          {item.weekLabel} · {item.kind === 'lesson' ? item.lessonType : 'assignment'}
-        </span>
-        <h2>{item.title}</h2>
-        <p>{description(item)}</p>
-        <div className={`status-badge ${currentStatus}`}>
-          {currentStatus === 'completed'
-            ? 'Completed'
-            : currentStatus === 'in-progress'
-              ? 'In progress'
-              : 'Not started'}
+      <header className="item-header">
+        <div className="item-header-left">
+          <span className="eyebrow">
+            {item.weekLabel} · {item.kind === 'lesson' ? item.lessonType : 'assignment'}
+          </span>
+          <h2 className="item-title">{item.title}</h2>
         </div>
-      </section>
+        <div className="item-header-actions">
+          <div className={`status-badge compact ${currentStatus}`}>
+            {currentStatus === 'completed'
+              ? 'Done'
+              : currentStatus === 'in-progress'
+                ? 'In progress'
+                : 'Not started'}
+          </div>
+          <button
+            className={`btn-sm${currentStatus === 'completed' ? ' status-completed' : ''}`}
+            onClick={() => setStatus(item.id, currentStatus === 'completed' ? 'not-started' : 'completed')}
+            type="button"
+            title={currentStatus === 'completed' ? 'Undo complete' : 'Mark complete'}
+          >
+            <CheckCircle2 size={15} />
+          </button>
+          <button
+            className={`btn-sm${currentStatus === 'in-progress' ? ' status-in-progress' : ''}`}
+            onClick={() => setStatus(item.id, currentStatus === 'in-progress' ? 'not-started' : 'in-progress')}
+            type="button"
+            title="In progress"
+          >
+            <CircleDashed size={15} />
+          </button>
+          <button
+            className={`btn-sm${isBookmarked ? ' bookmarked' : ''}`}
+            onClick={() => toggleBookmark(item.id)}
+            type="button"
+            title={isBookmarked ? 'Remove bookmark' : 'Bookmark'}
+          >
+            <Bookmark size={15} />
+          </button>
+          <div className="more-menu-wrap">
+            <button className="btn-sm" onClick={() => setMoreOpen((v) => !v)} type="button" title="More actions">
+              <ChevronDown size={15} />
+            </button>
+            {moreOpen && (
+              <div className="more-menu" onMouseLeave={() => setMoreOpen(false)}>
+                <button onClick={() => { onOpenPath(item.relativePath, 'file'); setMoreOpen(false) }} type="button">
+                  <FileText size={14} /> Open asset
+                </button>
+                <button onClick={() => { onOpenPath(item.relativePath, 'folder'); setMoreOpen(false) }} type="button">
+                  <FolderOpen size={14} /> Open folder
+                </button>
+                <button onClick={() => { onOpenPath(item.relativePath, 'editor'); setMoreOpen(false) }} type="button">
+                  <Pencil size={14} /> Open in editor
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
 
-      <section className="action-row">
-        <button
-          className={`button${currentStatus === 'completed' ? ' status-completed' : ' subtle'}`}
-          onClick={() => setStatus(item.id, 'completed')}
-          type="button"
-        >
-          <CheckCircle2 size={16} />
-          {currentStatus === 'completed' ? 'Completed' : 'Mark complete'}
-        </button>
-        <button
-          className={`button${currentStatus === 'in-progress' ? ' status-in-progress' : ' subtle'}`}
-          onClick={() => setStatus(item.id, 'in-progress')}
-          type="button"
-        >
-          <CircleDashed size={16} />
-          In progress
-        </button>
-        <button
-          className={`button${isBookmarked ? ' bookmarked' : ' subtle'}`}
-          onClick={() => toggleBookmark(item.id)}
-          type="button"
-        >
-          <Bookmark size={16} />
-          {isBookmarked ? 'Bookmarked' : 'Bookmark'}
-        </button>
-        <button className="button subtle" onClick={() => onOpenPath(item.relativePath, 'file')} type="button">
-          <FileText size={16} />
-          Open asset
-        </button>
-        <button className="button subtle" onClick={() => onOpenPath(item.relativePath, 'folder')} type="button">
-          <FolderOpen size={16} />
-          Open folder
-        </button>
-        <button className="button subtle" onClick={() => onOpenPath(item.relativePath, 'editor')} type="button">
-          Open in editor
-        </button>
-      </section>
-
-      <section className="card viewer-card">{children}</section>
+      <section className="viewer-area">{children}</section>
 
       <div className="pager">
         {previous ? (

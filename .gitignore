@@ -1,0 +1,50 @@
+# ── Protected source content (top-level week folders) ──
+# The raw cohort material must never be committed. Keep this
+# rule before anything else so it can't be accidentally overridden.
+/Week - *
+
+# ── Video / large media files ──
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.webm
+*.flv
+*.wmv
+*.m4v
+
+# ── Dependencies ──
+node_modules/
+
+# ── Build output ──
+dist/
+dist-ssr/
+
+# ── App generated data ──
+.study-desk-data/
+
+# ── Editor / OS junk ──
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Logs ──
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ── Env / secrets ──
+.env
+.env.*
+*.local
+
+# ── Cursor project files (optional, remove if you want these tracked) ──
+.cursor/

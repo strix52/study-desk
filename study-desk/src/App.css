@@ -4,17 +4,22 @@
   min-height: 100svh;
   display: grid;
   grid-template-columns: 272px minmax(0, 1fr) 300px;
-  gap: 14px;
-  padding: 16px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .panel,
 .workspace,
-.page,
 .overview-stats,
 .assignment-grid {
   display: grid;
   gap: 14px;
+  align-content: start;
+}
+
+.page {
+  display: grid;
+  gap: 10px;
 }
 
 /* ===== Cards ===== */
@@ -498,7 +503,116 @@
   gap: 8px;
 }
 
-/* ===== Action row ===== */
+/* ===== Item header (compact) ===== */
+
+.item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 4px;
+}
+
+.item-header-left {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.item-title {
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.status-badge.compact {
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  margin-right: 4px;
+}
+
+.btn-sm {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted-strong);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.btn-sm:hover {
+  background: var(--surface-hover);
+}
+
+.btn-sm.status-completed {
+  background: var(--completed);
+  border-color: var(--completed);
+  color: #fff;
+}
+
+.btn-sm.status-in-progress {
+  background: var(--in-progress);
+  border-color: var(--in-progress);
+  color: #fff;
+}
+
+.btn-sm.bookmarked {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.more-menu-wrap {
+  position: relative;
+}
+
+.more-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  z-index: 20;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--panel-shadow);
+  padding: 4px;
+  min-width: 160px;
+}
+
+.more-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink);
+  font-size: 0.86rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.more-menu button:hover {
+  background: var(--surface-hover);
+}
+
+/* ===== Action row (legacy, kept for assignment views) ===== */
 
 .action-row {
   justify-content: flex-start;
@@ -506,15 +620,16 @@
 
 /* ===== Media ===== */
 
-.viewer-card {
-  gap: 14px;
+.viewer-area {
+  display: grid;
+  gap: 10px;
 }
 
 .media {
   width: 100%;
-  min-height: 60vh;
+  min-height: 56vh;
   border: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--media-bg);
 }
 

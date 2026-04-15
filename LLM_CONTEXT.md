@@ -4,6 +4,8 @@ This file is the authoritative handoff context for any future LLM or coding agen
 
 Read this before making changes.
 
+---
+
 ## 1. Project Intent
 
 The user wanted a local indexed study interface on top of an already-downloaded course folder. The source material is a downloaded cohort with:
@@ -16,116 +18,107 @@ The desired product was not a plain file explorer. The chosen direction was an i
 - weekly curriculum view
 - in-app lecture/PDF viewing
 - assignment preview and metadata extraction
-- local progress tracking
+- local progress tracking (video position, completion, speed)
 - local personal notes
 - bookmarks and recents
-- “resume learning” flow
+- "resume learning" flow
 - file/folder/editor open actions
+- dark mode
 
-The app is offline-first and uses only local data.
+The app is offline-first and uses only local data. It is for personal use only — not production grade, not fancy, just **perfectly usable with correct tracking**.
 
-## 2. Original Plan
+## 2. Implementation History
 
-The original plan from the user was:
+### v1 — Original scaffolding
 
-### Content ingestion and normalization
+The `study-desk` folder was bootstrapped from a Vite + React template. When work began in earnest, it was effectively just scaffolding — no scanner, no API, no curriculum UI, no persistence.
 
-- scan the course root into a structured index
-- normalize folder names into `weekNumber`, `weekLabel`, `partLabel`, `topicTitle`, and items
-- treat lecture media and assignment folders as first-class study items
-- parse assignment metadata from:
-  - `README.md`
-  - top-of-file comments in starter files
-  - known markers such as `easy`, `medium`, `hard`, `tests`, `solutions`
-- keep generated data separate from raw course files
+### v2 — Full usability overhaul (COMPLETED)
 
-### Frontend shape
+A 7-phase plan was executed to make the app fully functional:
 
-- left rail with curriculum map and completion state
-- main content for week/lesson/assignment views
-- right utility rail for notes, bookmarks, recents, and next-up queue
-- search / quick-jump palette
-- resume-learning landing flow
+1. **Video experience** — resume position, playback speed (0.75x–2x persisted), auto-complete on finish, duration tracking, position saved every 5s and on pause
+2. **Progress visualization** — progress bars on dashboard/weeks/left rail, active state buttons, status badges, course completion percentage
+3. **Component split** — monolithic `App.tsx` extracted into 10 component files under `src/components/`, plus `src/utils/helpers.ts`
+4. **Navigation fixes** — week part grouping, left rail active state + auto-scroll, command palette keyboard nav, 404 route, prev/next week boundary labels
+5. **Right rail and notes** — browse all notes, type icons in utility lists, status dots, show-all toggle
+6. **Design tightening** — reduced card rounding, tighter heading sizes, status colors, hover improvements, dark mode toggle (warm dark palette), entrance transitions, responsive fixes
+7. **Backend fixes** — verified video range request support (Express sendFile), fixed `launch()` race condition in `child_process.spawn`, added JSON parse error handling for corrupt cache/state files
 
-### Core study behavior
+All phases verified: `eslint src/` clean, `tsc -b --noEmit` clean, `npm run build` succeeds.
 
-- play local videos in-app
-- show PDFs inline where possible
-- link assignments to matching weeks
-- show README summary, difficulty, starter preview, tests, solution badge
-- save user state locally
-- keep personal state out of the downloaded source content
+### v2.1 — Layout spacing fix (COMPLETED)
 
-### Recommended tech
+After v2, the lesson page had a critical layout problem: the video player was pushed far below the viewport fold due to:
 
-- React + Vite frontend
-- minimal local Node/Express backend for scanning and file actions
-- JSON cache/state for v1
+- A fat `page-card` section (title + description + status badge in a padded card)
+- A full `action-row` with 6 wrapped buttons
+- CSS Grid's default `align-content: stretch` on the workspace, which inflated the topbar's row height
 
-## 3. What Existed Before Work Continued
+**Changes made:**
 
-When work resumed, the `study-desk` folder existed, but it was still effectively the default Vite starter:
+1. **`ItemLayout.tsx` rewritten** — replaced the card header + button row with a compact inline header:
+   - Title and eyebrow on the left, compact 32px icon buttons on the right
+   - Status/bookmark/complete actions are icon-only buttons (`btn-sm`)
+   - "Open asset / folder / editor" moved into a dropdown menu (chevron button with `.more-menu`)
+   - Video/content area (`viewer-area`) appears immediately after the header with no card wrapper
 
-- starter React counter page
-- starter CSS
-- added dependencies, but no real study desk implementation
-- no real scanner
-- no real local API
-- no real persistence model
-- no actual curriculum UI
+2. **`App.css` updated** — new styles for `.item-header`, `.btn-sm`, `.more-menu-wrap`, `.more-menu`, `.viewer-area`; shell padding reduced from 16px to 12px, gap from 14px to 12px
 
-So this was not a partial study app that merely needed minor fixes. It was mostly scaffolding.
+3. **`align-content: start`** added to `.workspace` and `.panel` grids to prevent row stretching
 
-## 4. Current Status
+### v2.2 — Git setup (COMPLETED)
 
-The app has been implemented through a v2 usability overhaul on top of the original v1.
+- Root `.gitignore` created to exclude video files (*.mp4, *.mkv, etc.), `node_modules/`, `dist/`, `.study-desk-data/`, editor junk, `.cursor/`
+- Initial commit on `main` branch: 273 files, 90,819 insertions (source code, assignments, study-desk app, LLM_CONTEXT.md, launcher)
+- **No remote configured yet** — push was attempted but failed; user needs to add a remote with `git remote add origin <url>`
+- The 31 `Week -` folders (tens of GB of video content) are excluded from git via `.gitignore`
 
-### Verified working pieces
+## 3. Current Status
 
-- local backend server
-- folder scanner / course index generation
-- normalized week grouping for lecture folders
-- assignment indexing and preview extraction
-- user state persistence (with video position, speed, theme)
-- React study interface (split into component files)
-- local media serving (with Range request support via Express sendFile)
-- open-folder / open-file / open-in-editor actions
-- command palette with keyboard navigation (arrow keys + Enter)
-- dashboard / week / lesson / assignment flows with progress bars
-- video resume from saved position
-- video playback speed control (0.75x–2x, persisted)
-- auto-mark-complete on video end
-- dark mode toggle (warm dark palette, persisted)
-- left rail active week highlighting with auto-scroll
-- week part grouping (Part 1 / Part 2 dividers)
-- status-aware action buttons (completed / in-progress visual states)
-- notes browsing (all notes list in right rail)
-- item type icons in utility lists
-- 404 catch-all route
-- prev/next pager shows week-boundary labels
-- page entrance animations
-- one-click `.bat` launcher
+### What works
+
+- Full study desk app: dashboard, week view, lesson view, assignment view
+- Video playback with resume, speed control, auto-complete
+- Progress tracking (completion status, video position/duration, bookmarks)
+- Notes per item, browsable notes list
+- Dark mode (persisted)
+- Command palette search (Ctrl+K)
+- Left rail curriculum map with active highlighting
+- Right rail with notes, bookmarks, recents, next-up
+- Local file/folder/editor open actions
+- One-click launcher (`start-study-desk.bat`)
 
 ### Verified checks
 
-These were verified after the v2 overhaul:
+- `eslint src/` — zero errors
+- `tsc -b --noEmit` — zero errors
+- `npm run build` — succeeds (tsc + vite build)
 
-- `eslint src/` passes with zero errors
-- `tsc -b --noEmit` passes with zero errors
-- `npm run build` passes (tsc + vite build)
+### Indexed content snapshot
 
-### Current indexed content snapshot
+At the time of last verification:
 
-At the time of verification, the app indexed:
+- 21 weeks
+- 92 lesson assets (78 videos, 13 PDFs, 1 image)
+- 21 assignment entries
 
-- `21` weeks
-- `92` lesson assets
-- `21` assignment entries
-- `78` videos
-- `13` PDFs
-- `1` image
+These numbers change if source folders change and the index is refreshed.
 
-These numbers may change if the source folders change and the index is refreshed.
+## 4. What Has NOT Been Implemented
+
+These are features/improvements that were discussed or are natural next steps but have **not been built**:
+
+1. **Transcript or semantic search** — no video transcription, no full-text search of lecture content
+2. **Embedded database** — state uses JSON files, not SQLite or another DB
+3. **External data folder** — app data lives under `study-desk/.study-desk-data/` rather than an external sidecar location
+4. **Mobile/tablet optimization** — responsive breakpoints exist but haven't been thoroughly tested on small screens
+5. **Keyboard shortcuts beyond Ctrl+K** — no vim-style navigation, no hotkeys for mark-complete/bookmark etc.
+6. **Batch operations** — no "mark all in week as complete", no bulk status changes
+7. **Spaced repetition / review scheduling** — no SRS-style review prompts
+8. **Export/import of study state** — no way to backup/restore progress beyond the raw JSON file
+9. **Git remote** — no remote repository configured yet
+10. **Runtime testing** — the app has been type-checked and lint-checked, but no automated test suite exists; manual runtime testing is recommended after any changes
 
 ## 5. Hard Safety Rules
 
@@ -138,384 +131,240 @@ The downloaded course content is the source of truth and must not be modified or
 Protected content includes, but is not limited to:
 
 - top-level `Week - ...` folders
-- all lecture videos
-- all PDFs
-- any images or schedule/reference assets in those week folders
+- all lecture videos, PDFs, images
 - the entire `Harkirat Assignment` folder
-- all assignment READMEs
-- all starter files
-- all tests
-- all solution folders
+- all assignment READMEs, starter files, tests, solution folders
 
 ### Absolute rule
 
-Do not delete, rename, overwrite, reorganize, or “clean up” the original downloaded study material.
-
-That includes:
-
-- videos
-- PDFs
-- images
-- assignment files
-- schedules / notes / source content
-- folders outside the app’s own implementation area
+Do not delete, rename, overwrite, reorganize, or "clean up" the original downloaded study material.
 
 ### Allowed write scope
 
 Future changes should be limited to:
 
-- the app folder: `study-desk`
+- the app folder: `study-desk/`
 - the launcher file: `start-study-desk.bat`
-- the app’s generated data/cache/state area
+- the app's generated data/cache/state area (`.study-desk-data/`)
+- root config files: `.gitignore`, `LLM_CONTEXT.md`
 
 ### If unsure
 
 If a change might touch original study material, stop and avoid the change unless the user has explicitly requested it.
 
-## 6. Current Directory Responsibilities
+## 6. Directory Structure
 
-### Protected source content
+### Protected source content (READ-ONLY)
 
-These are source-content areas and should be treated as read-only by default:
-
-- `D:\download_extracted\final\Harkirat Cohort 0 - 1\Week - ...`
-- `D:\download_extracted\final\Harkirat Cohort 0 - 1\Harkirat Assignment`
+```
+D:\download_extracted\final\Harkirat Cohort 0 - 1\
+├── Week - 0 ( Prerequisites - HTML , CSS)/     ← 31 folders like this
+├── Week - 1 ( JS Foundation , API ) Part - 1/
+├── ...
+├── Week -20 ( OpenAPI Spec )/
+└── Harkirat Assignment/
+    ├── week- 0/
+    ├── week-1/
+    ├── ...
+    └── week-14/
+```
 
 ### App implementation
 
-Main app folder:
+```
+study-desk/
+├── server/
+│   ├── index.mjs           ← Express backend: bootstrap, state, file serving, open actions
+│   ├── course-indexer.mjs   ← Scans week folders + assignments into structured index
+│   └── shared.mjs           ← Path/normalization/extraction helpers
+├── src/
+│   ├── App.tsx              ← Shell: bootstrap, state management, left/right rails, routing
+│   ├── App.css              ← Component styles, layout, responsive
+│   ├── index.css            ← CSS variables, dark mode palette, globals
+│   ├── api.ts               ← Client API wrappers
+│   ├── types.ts             ← TypeScript interfaces (CourseIndex, UserState, etc.)
+│   ├── main.tsx             ← React entry point
+│   ├── utils/
+│   │   └── helpers.ts       ← Pure functions: orderedItems, href, description, normalizeState,
+│   │                           weekProgress, courseProgress, recentTrail, nextQueue, searchResults
+│   └── components/
+│       ├── Dashboard.tsx     ← Dashboard with overall progress + week cards
+│       ├── WeekView.tsx      ← Week timeline with part grouping
+│       ├── LessonView.tsx    ← Lesson viewer (delegates to VideoPlayer/iframe/img)
+│       ├── AssignmentView.tsx← Assignment viewer with README, starters, flags
+│       ├── ItemLayout.tsx    ← Compact item header: title, icon action buttons, dropdown, pager
+│       ├── VideoPlayer.tsx   ← Custom player: resume, speed, auto-complete, progress saving
+│       ├── CommandPalette.tsx← Search palette with keyboard navigation
+│       ├── ProgressBar.tsx   ← Reusable progress bar
+│       ├── StatusBadge.tsx   ← Status icon (completed/in-progress/not-started)
+│       └── Metric.tsx        ← Number + label metric block
+├── .gitignore               ← Excludes node_modules, dist, .study-desk-data
+├── package.json
+├── vite.config.mjs          ← Active vite config (used by scripts)
+├── vite.config.ts           ← Legacy vite config (not used)
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
+└── eslint.config.js
+```
 
-- `D:\download_extracted\final\Harkirat Cohort 0 - 1\study-desk`
+### Root files
 
-Important files:
-
-- `server/index.mjs`
-- `server/course-indexer.mjs`
-- `server/shared.mjs`
-- `src/App.tsx` (shell, state management, left/right rails)
-- `src/App.css`
-- `src/index.css` (CSS variables, dark mode, globals)
-- `src/api.ts`
-- `src/types.ts`
-- `src/utils/helpers.ts`
-- `src/components/VideoPlayer.tsx`
-- `src/components/Dashboard.tsx`
-- `src/components/WeekView.tsx`
-- `src/components/LessonView.tsx`
-- `src/components/AssignmentView.tsx`
-- `src/components/ItemLayout.tsx`
-- `src/components/CommandPalette.tsx`
-- `src/components/ProgressBar.tsx`
-- `src/components/StatusBadge.tsx`
-- `src/components/Metric.tsx`
-- `vite.config.mjs`
-- `package.json`
-
-Launcher:
-
-- `D:\download_extracted\final\Harkirat Cohort 0 - 1\start-study-desk.bat`
+```
+D:\download_extracted\final\Harkirat Cohort 0 - 1\
+├── .gitignore               ← Excludes *.mp4, node_modules, dist, .study-desk-data, .cursor
+├── LLM_CONTEXT.md           ← This file
+└── start-study-desk.bat     ← One-click launcher
+```
 
 ### Generated app data
 
-Current sidecar-like data location:
+```
+study-desk/.study-desk-data/
+├── course-index.json        ← Cached course index
+└── user-state.json          ← Progress, notes, recents, bookmarks, theme, speed
+```
 
-- `D:\download_extracted\final\Harkirat Cohort 0 - 1\study-desk\.study-desk-data\...`
+## 7. Architecture Overview
 
-This currently stores:
+### Backend (`server/index.mjs`)
 
-- generated course index cache
-- user progress / notes / recents state
+- Serves bootstrap payload (index + user state) at startup
+- Refreshes index on demand
+- Saves user state (debounced from frontend)
+- Serves local media files for video/PDF/image viewing (Express `sendFile` with Range support)
+- Opens local file/folder/editor via `child_process.spawn`
+- Serves built frontend from `dist/` when available
+- Robust JSON parse error handling for corrupt cache/state files
+- `launch()` function wraps `spawn` with try/catch and a 200ms settle delay
 
-Note: this is inside the app folder, not outside the cohort root. This was chosen because it worked reliably in the current environment without touching raw course folders.
+### Frontend (`src/App.tsx` + components)
 
-## 7. Runtime / Usage
+**State management:** All state lives in the `StudyDesk` component and flows down via props. Actions are memoized with `useCallback`. Lists are memoized with `useMemo`. State saves are debounced (400ms) to the backend.
+
+**Key state shape (`UserState`):**
+- `itemStates: Record<string, ItemState>` — per-item status, bookmarked, playbackPosition, duration
+- `notes: Record<string, NoteEntry>` — per-item notes
+- `recent: RecentEntry[]` — recently visited items
+- `lastActiveItemId?: string` — for resume-learning
+- `playbackSpeed?: number` — globally persisted
+- `theme?: 'light' | 'dark'` — persisted
+
+**Routing:** React Router with routes for `/` (dashboard), `/week/:weekNumber`, `/lesson/:itemId`, `/assignment/:itemId`, and a `*` catch-all 404.
+
+**Layout:** Three-column CSS Grid shell (272px left rail, flex center, 300px right rail). Left rail has hero card + stats + scrollable curriculum. Right rail has notes + bookmarks + recents + next-up. Center is the workspace with topbar + route content.
+
+### CSS Architecture
+
+- `index.css` — CSS custom properties (design tokens), light/dark theme via `[data-theme='dark']`, global resets
+- `App.css` — all component styles, grid layouts, responsive breakpoints (1280px, 980px)
+- No CSS modules or CSS-in-JS — plain CSS with BEM-ish class naming
+- Fonts: Newsreader (display/headings), Source Sans 3 (body), Consolas (mono)
+
+## 8. Runtime / Usage
 
 ### Normal usage
 
-The simplest user flow is to double-click:
-
-- `start-study-desk.bat`
-
-That script:
-
-- checks dependencies
-- builds if needed
-- starts the local server
-- opens the browser at `http://localhost:4307`
+Double-click `start-study-desk.bat`. It checks dependencies, builds if needed, starts the server, and opens `http://localhost:4307`.
 
 ### Manual commands
 
-Production-style local server:
-
 ```powershell
 cd "D:\download_extracted\final\Harkirat Cohort 0 - 1\study-desk"
+
+# Production-style local server
 npm start
-```
 
-Dev mode:
-
-```powershell
-cd "D:\download_extracted\final\Harkirat Cohort 0 - 1\study-desk"
+# Dev mode (hot reload)
 npm run dev
-```
 
-### Build
-
-```powershell
-cd "D:\download_extracted\final\Harkirat Cohort 0 - 1\study-desk"
+# Build
 npm run build
+
+# Type check
+npx tsc -b --noEmit
+
+# Lint
+npx eslint src/
 ```
 
-## 8. Architecture Overview
+## 9. Known Quirks / Limitations
 
-### Backend
+1. **Data folder location** — app data lives under `study-desk/.study-desk-data/` rather than an external sidecar. Works fine but isn't the ideal separation.
 
-`server/index.mjs`
+2. **Assignment grouping is heuristic** — based on folder structure and naming conventions. Summary quality depends on README or starter comments being present.
 
-Responsibilities:
+3. **Editor launch is best-effort** — tries `code`, `cursor`, `code-insiders` in order, falling back to Explorer.
 
-- serves bootstrap payload
-- refreshes index
-- saves user state
-- serves local files for media/PDF/image viewing
-- opens local file/folder/editor actions
-- serves built frontend when `dist` exists
+4. **Vite config quirk** — the active config is `vite.config.mjs` (not `vite.config.ts`).
 
-`server/course-indexer.mjs`
+5. **Video position save granularity** — saved every 5s during playback and on pause/end. A crash could lose up to 5s of position data.
 
-Responsibilities:
+6. **CSS `color-mix()` usage** — requires Chrome 111+, Firefox 113+, Safari 16.2+. Fine for a local personal app.
 
-- scans week folders
-- extracts week number and part number
-- indexes lecture media files
-- scans `Harkirat Assignment`
-- detects assignment group folders
-- reads README content
-- extracts starter previews
-- detects tests and solutions
+7. **No git remote** — initial commit exists on `main` branch but no remote is configured.
 
-`server/shared.mjs`
+8. **No automated tests** — the app passes type-check and lint, but there's no test suite. Manual runtime verification is recommended.
 
-Responsibilities:
-
-- path helpers
-- normalization helpers
-- comment/summary extraction helpers
-- file type helpers
-
-### Frontend
-
-`src/App.tsx`
-
-Main shell: bootstrap, state management, left rail, right rail, routing, and small helper components (UtilityList, NotesList, Metric, CenteredState, ItemTypeIcon).
-
-`src/components/Dashboard.tsx` — dashboard view with overall progress bar and week cards
-`src/components/WeekView.tsx` — week timeline with part grouping and video progress bars
-`src/components/LessonView.tsx` — lesson viewer that delegates to VideoPlayer / iframe / img
-`src/components/AssignmentView.tsx` — assignment viewer with README, starter preview, flags
-`src/components/ItemLayout.tsx` — shared item chrome: header, status badge, action buttons, pager
-`src/components/VideoPlayer.tsx` — custom video player with resume, speed control, auto-complete
-`src/components/CommandPalette.tsx` — search palette with keyboard navigation (arrow/enter)
-`src/components/ProgressBar.tsx` — reusable progress bar
-`src/components/StatusBadge.tsx` — status icon (completed/in-progress/not-started)
-`src/components/Metric.tsx` — number + label metric block
-
-`src/utils/helpers.ts`
-
-- pure utility functions: orderedItems, href, description, normalizeState, weekProgress, courseProgress, recentTrail, nextQueue, searchResults
-
-`src/api.ts`
-
-- client API wrappers for bootstrap, refresh, save-state, open-path, file URLs
-
-`src/types.ts`
-
-- course index and user state types (includes playbackPosition, duration, playbackSpeed, theme, SearchResult)
-
-## 9. Current Features
-
-### Dashboard
-
-- resume-learning entry point with last-active title
-- overall course progress bar with percentage
-- completed / in-progress / bookmarked metrics
-- week cards with individual progress bars
-
-### Left rail
-
-- curriculum map by week with per-week progress bars
-- active week highlighting (accent border) based on current route
-- auto-scroll to active week on navigation
-- week completion status icons (color-coded)
-- refresh-index button
-
-### Week page
-
-- ordered week timeline with part grouping (Part 1 / Part 2 dividers)
-- assignment section divider
-- per-item status coloring on timeline cards
-- video playback progress bars on partially-watched videos
-
-### Lesson page
-
-- video player with resume from saved position
-- playback speed control (0.75x–2x, globally persisted)
-- auto-mark-complete when video ends (with toast notification)
-- video position saved every 5 seconds and on pause
-- inline PDF display via iframe
-- image display for supporting assets
-- status badge showing current state
-- status-aware action buttons (completed = green, in-progress = amber, bookmarked = accent)
-- open file / open folder / open in editor
-- previous / next navigation with week-boundary labels
-
-### Assignment page
-
-- summary from README or top-of-file prompt extraction
-- README preview (rendered markdown)
-- starter-file preview snippets
-- solution/test/readme badges
-- difficulty chip
-- open folder / open editor actions
-
-### Right rail
-
-- notes editor for current item
-- browse all notes list (sorted by last updated, with preview snippets)
-- bookmarks with item type icons
-- recents with item type icons
-- next-up queue with item type icons
-- show-all / show-less toggle on lists with more than 6 items
-
-### Search
-
-- command palette (Ctrl/Cmd+K) with keyboard navigation (arrow keys + enter)
-- searches weeks and indexed items
-- active result highlighting
-- no-results message for empty searches
-- escape to close
-
-### Dark mode
-
-- warm dark theme via CSS custom properties
-- toggle button in topbar (moon/sun icon)
-- theme preference persisted in user state
-- all components and backgrounds adapt
-
-### Animations
-
-- page entrance transitions (fade + slide)
-- palette backdrop and slide-up animation
-- smooth progress bar transitions
-
-## 10. Known Quirks / Limitations
-
-These are not necessarily bugs, but they matter for future work.
-
-### 1. Data folder location
-
-The original plan preferred app data outside the downloaded cohort. The current implementation stores app data under:
-
-- `study-desk\.study-desk-data`
-
-This still keeps the raw study files untouched, but it is not the ideal external sidecar location from the original plan.
-
-### 2. Assignment grouping is heuristic
-
-Assignment grouping is based on folder structure and naming conventions. It works reasonably for the current course tree, but the extraction is heuristic rather than schema-driven.
-
-Example:
-
-- a week with `easy`, `medium`, `hard` folders may appear as multiple assignment entries based on subfolders
-- summary quality depends on README or starter comments being present
-
-### 3. No transcript or semantic search
-
-Not implemented.
-
-### 4. No embedded DB
-
-State uses JSON files, not SQLite or another embedded DB.
-
-### 5. Editor launch is best-effort
-
-Open-in-editor tries `code`, `cursor`, `code-insiders` in order, falling back to Explorer.
-
-### 6. Vite config quirk
-
-The active config used by scripts is `vite.config.mjs`.
-
-### 7. Video position save granularity
-
-Video position is saved every 5 seconds during playback and on pause/end. A crash or forced close could lose up to 5 seconds of position data.
-
-### 8. CSS color-mix usage
-
-The CSS uses `color-mix(in srgb, ...)` for status-tinted backgrounds. This requires a modern browser (Chrome 111+, Firefox 113+, Safari 16.2+). For a local personal app this is fine.
-
-## 11. Implementation Decisions Made
+## 10. Implementation Decisions
 
 These decisions were deliberate:
 
-- preserve the raw course content completely
-- keep the app local and offline-first
-- use a minimal Express backend rather than Electron/Tauri
-- use JSON cache/state for v1
-- favor a usable product now over early abstraction
-- make the app launchable by double-click via `.bat`
+- Preserve the raw course content completely (non-destructive boundary)
+- Keep the app local and offline-first
+- Use a minimal Express backend rather than Electron/Tauri
+- Use JSON cache/state rather than an embedded DB
+- Favor a usable product now over early abstraction
+- Make the app launchable by double-click via `.bat`
+- Prop drilling with `useCallback`/`useMemo` over React Context (simpler, sufficient for this scale)
+- CSS custom properties for theming over a CSS-in-JS solution
+- Compact item header with icon buttons + dropdown over a full button row (v2.1 layout fix)
 
-## 12. What Future LLMs Should Optimize For
+## 11. If You Are Another LLM Picking This Up
 
-If continuing this project, optimize for:
+Before editing:
+
+1. Read this file
+2. Inspect `study-desk/package.json`
+3. Inspect `server/index.mjs` and `server/course-indexer.mjs`
+4. Inspect `src/App.tsx` (shell + state management + left/right rails)
+5. Inspect `src/types.ts` and `src/utils/helpers.ts`
+6. Inspect the relevant component in `src/components/` for the area you are changing
+7. Assume original study files are out of scope for destructive actions
+
+### Priorities for future work
+
+Optimize for:
 
 - preserving the non-destructive boundary
-- improving assignment extraction accuracy
-- improving UI polish without breaking local functionality
+- improving UI polish and usability without breaking local functionality
 - keeping navigation fast for sequential study
 - keeping persistence simple and reliable
 - avoiding rewrites unless clearly justified
-
-## 13. What Future LLMs Should Avoid
 
 Avoid:
 
 - touching or restructuring raw study files
 - moving videos/PDFs/assignments around
-- deleting “unused” course files
-- replacing the local architecture with something more complex unless the user asks
+- replacing the local architecture with something more complex unless asked
 - introducing network dependence for core features
-- overengineering persistence before the user asks for it
+- overengineering persistence before it's asked for
 
-## 14. Safe Refactor Boundaries
+### Safe refactor boundaries
 
-Safe areas to refactor:
+Safe areas:
 
 - `study-desk/src/*`
 - `study-desk/server/*`
 - `study-desk/package.json`
 - `study-desk/vite.config.mjs`
 - `start-study-desk.bat`
-- `.study-desk-data` format if migrated carefully
+- `.study-desk-data` format (if migrated carefully)
+- `.gitignore`, `LLM_CONTEXT.md`
 
-Unsafe areas without explicit user approval:
+Unsafe areas (need explicit user approval):
 
 - any top-level `Week - ...` folder
-- `Harkirat Assignment`
-- any lecture asset
-- any assignment asset
-
-## 15. If You Are Another LLM Picking This Up
-
-Before editing:
-
-1. read this file
-2. inspect `study-desk/package.json`
-3. inspect `server/index.mjs`
-4. inspect `server/course-indexer.mjs`
-5. inspect `src/App.tsx` (shell + state management)
-6. inspect `src/types.ts` and `src/utils/helpers.ts`
-7. inspect the relevant component in `src/components/` for the area you are changing
-8. assume original study files are out of scope for destructive actions
-
-If you need to add features, do so inside the app layer only unless the user explicitly requests otherwise.
-
+- `Harkirat Assignment/`
+- any lecture asset (video, PDF, image)
+- any assignment asset (README, starter, test, solution)
