@@ -108,6 +108,10 @@ function StudyDesk({
     matchPath('/lesson/:itemId', location.pathname)?.params.itemId ??
     matchPath('/assignment/:itemId', location.pathname)?.params.itemId
   const activeItem = activeItemId ? itemMap.get(activeItemId) : undefined
+  const activeLesson =
+    activeItem?.kind === 'lesson' ? activeItem : undefined
+  const activeAssignment =
+    activeItem?.kind === 'assignment' ? activeItem : undefined
   const lastActive = userState.lastActiveItemId
     ? itemMap.get(userState.lastActiveItemId)
     : undefined
@@ -266,8 +270,8 @@ function StudyDesk({
         navigate(href(previousItem))
       }
     }
-    window.addEventListener('keydown', onKeyDown, { capture: true })
-    return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [activeItem, navigate, nextItem, paletteOpen, previousItem, setStatus, toggleBookmark, userState.itemStates])
 
   const updateNote = useCallback((itemId: string, body: string) => {
@@ -477,6 +481,8 @@ function StudyDesk({
               path="/lesson/:itemId"
               element={
                 <LessonView
+                  key={location.pathname}
+                  lesson={activeLesson}
                   items={items}
                   userState={userState}
                   onVisit={visitItem}
@@ -493,6 +499,8 @@ function StudyDesk({
               path="/assignment/:itemId"
               element={
                 <AssignmentView
+                  key={location.pathname}
+                  assignment={activeAssignment}
                   items={items}
                   userState={userState}
                   onVisit={visitItem}

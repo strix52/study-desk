@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
 import type { LessonItem, StudyItem, StudyStatus, UserState } from '../types'
 import { mediaUrl } from '../api'
 import { VideoPlayer } from './VideoPlayer'
 import { ItemLayout } from './ItemLayout'
 
 interface LessonViewProps {
+  lesson?: LessonItem
   items: StudyItem[]
   userState: UserState
   onVisit: (item: StudyItem) => void
@@ -18,11 +18,7 @@ interface LessonViewProps {
 }
 
 export function LessonView(props: LessonViewProps) {
-  const itemId = useParams().itemId
-  const { items, userState, onVisit, onEngage, onVideoProgress, onSpeedChange, setStatus } = props
-  const lesson = items.find(
-    (item): item is LessonItem => item.id === itemId && item.kind === 'lesson',
-  )
+  const { lesson, items, userState, onVisit, onEngage, onVideoProgress, onSpeedChange, setStatus } = props
 
   useEffect(() => {
     if (lesson) onVisit(lesson)

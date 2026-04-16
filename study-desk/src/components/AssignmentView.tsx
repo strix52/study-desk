@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { FileCode2, FileText } from 'lucide-react'
 import type { AssignmentItem, StudyItem, StudyStatus, UserState } from '../types'
 import { ItemLayout } from './ItemLayout'
 
 interface AssignmentViewProps {
+  assignment?: AssignmentItem
   items: StudyItem[]
   userState: UserState
   onVisit: (item: StudyItem) => void
@@ -16,11 +16,7 @@ interface AssignmentViewProps {
 }
 
 export function AssignmentView(props: AssignmentViewProps) {
-  const itemId = useParams().itemId
-  const { items, onVisit, onEngage } = props
-  const assignment = items.find(
-    (item): item is AssignmentItem => item.id === itemId && item.kind === 'assignment',
-  )
+  const { assignment, items, onVisit, onEngage } = props
 
   useEffect(() => {
     if (assignment) onVisit(assignment)

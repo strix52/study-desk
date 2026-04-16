@@ -100,7 +100,9 @@ export function VideoPlayer({
     const video = videoRef.current
     return () => {
       if (video && positionRestored.current) {
-        onProgress(video.currentTime, video.duration)
+        const finalPosition = video.currentTime
+        const finalDuration = video.duration
+        window.setTimeout(() => onProgress(finalPosition, finalDuration), 0)
       }
     }
   }, [onProgress])

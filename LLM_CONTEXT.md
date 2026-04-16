@@ -172,16 +172,56 @@ After v2.4, the user correctly pointed out that keyboard shortcuts are hard to l
   - `npx tsc -b --noEmit` passed
   - `npm run build` passed
 
-### v2.4.2 — Keyboard capture phase fix (CURRENT WORKING TREE)
+### v2.4.2 — Sequential Navigation Bug Fix (COMPLETED)
 
-The keyboard event listener in `App.tsx` was changed from bubble phase to capture phase to ensure shortcuts fire before any child element handlers (e.g., the `<video>` element).
+This fix resolved the broken `N` / `P` shortcuts and the prev/next pager links on lesson pages.
 
-**Change:**
+**Real root cause:**
 
-- `window.addEventListener('keydown', onKeyDown)` → `window.addEventListener('keydown', onKeyDown, { capture: true })`
-- Same for the cleanup `removeEventListener`
+- The bug was **not** fundamentally a keyboard bug and **not** fundamentally a React Router param bug.
+- The failure only happened on `video -> anything` navigation.
+- `pdf -> video` worked, but `video -> video` and `video -> pdf` both broke.
+- The actual culprit was the `VideoPlayer.tsx` unmount cleanup:
+  - on unmount, it synchronously called `onProgress(video.currentTime, video.duration)`
+  - that caused a state update during the navigation/unmount boundary
+  - the browser URL changed, but the rendered lesson content stayed stale on the old video page
 
-This was intended to fix the N/P shortcut issue but **did not resolve it**. See the open bug investigation in Section 12 below.
+**How this was figured out:**
+
+1. User reported that both `N`/`P` and the pager links were broken
+2. That proved the problem was broader than keyboard handling
+3. A capture-phase keyboard change was tried first, but it did not solve the issue
+4. The route/view layer was then investigated, and route-key / prop-driven view changes were introduced
+5. Runtime reproduction with Playwright isolated the real pattern:
+   - `pdf -> video` transition worked
+   - `video -> video` transition failed
+   - `video -> pdf` transition failed
+6. That narrowed the problem to logic that only exists on video pages, specifically the `VideoPlayer` lifecycle
+7. The synchronous unmount save was identified as the most likely interfering state update
+
+**Fix applied:**
+
+- In `VideoPlayer.tsx`, the unmount cleanup still captures the final playback position and duration
+- But instead of calling `onProgress(...)` synchronously during unmount, it now defers that write with:
+
+```ts
+window.setTimeout(() => onProgress(finalPosition, finalDuration), 0)
+```
+
+- This lets the route transition commit first, then persists the final playback position immediately after
+
+**Important outcome:**
+
+- `N` and `P` now work
+- Pager previous/next links now work
+- `video -> video` and `video -> pdf` transitions both work
+
+**Implementation note:**
+
+- The earlier route-boundary hardening in `App.tsx` / `LessonView.tsx` / `AssignmentView.tsx` was kept:
+  - lesson/assignment views are keyed by `location.pathname`
+  - the active lesson/assignment is derived in `App.tsx` and passed into the child view
+- But the decisive fix was the deferred progress save in `VideoPlayer.tsx`
 
 ## 3. Current Status
 
@@ -198,6 +238,7 @@ This was intended to fix the N/P shortcut issue but **did not resolve it**. See 
 - Command palette search (`Ctrl+K` and `/`)
 - Empty command palette shows Recents + Next up
 - Keyboard shortcuts for next/previous/complete/bookmark
+- Sequential navigation now works correctly on video pages
 - In-app shortcuts help popover in the top bar
 - Left rail curriculum map with active highlighting
 - Right rail with notes, bookmarks, recents, next-up
@@ -484,105 +525,62 @@ Unsafe areas (need explicit user approval):
 - any lecture asset (video, PDF, image)
 - any assignment asset (README, starter, test, solution)
 
-## 12. Open Bug: N/P Navigation Broken (URL changes, content does not)
+## 12. Resolved Bug: Sequential Navigation Broke After Leaving Video Pages
 
-**Priority: HIGH** — This bug affects both the `N`/`P` keyboard shortcuts and the prev/next pager `<Link>` components below the player. It is a navigation/rendering problem, not a keyboard-only problem.
+This issue is resolved. Keep this section because it captures the real root cause and prevents future regressions.
 
-### Symptoms (user-reported)
+### Final symptom pattern
 
-1. **N and P keyboard shortcuts:** Pressing `N` or `P` while viewing a lesson changes the browser URL to the correct next/previous item, but the page content does not update. The video player, title, and all visible content remain on the old item.
-2. **Prev/Next pager links (below the player):** Clicking the `<Link>` previous/next buttons in `ItemLayout.tsx` also changes the URL but does not re-render the content.
-3. **Refresh workaround for pager links:** After the pager link bug occurs, refreshing the page a few times can "unstick" it, after which the pager links start working normally for sequential navigation.
-4. **Refresh does NOT fix N/P shortcuts:** The keyboard shortcuts remain broken even after refreshes.
-5. **Other shortcuts work fine:** `M` (mark complete), `B` (bookmark), `/` and `Ctrl+K` (command palette), `Esc` (close menus) all work correctly. This means the keyboard handler IS firing and `activeItem` IS correctly resolved.
-6. **Tested with focus in different places:** User tried clicking on the video player first, then clicking on the page body. Neither helped.
+1. `N` / `P` shortcuts and pager links both failed in the same way
+2. Browser URL changed to the correct lesson
+3. Visible content stayed on the old lesson
+4. `pdf -> video` navigation worked
+5. `video -> video` navigation failed
+6. `video -> pdf` navigation failed
 
-### What the symptoms tell us
+### What this proved
 
-The core issue is almost certainly **not keyboard-related**. Both the keyboard shortcut (`navigate(href(nextItem))`) and the pager link (`<Link to={href(next)}>`) produce the same broken behavior: URL updates but content stays stale. This points to a **React Router navigation / component re-render problem** where changing the URL parameter (`:itemId`) does not trigger the `LessonView` or `AssignmentView` component to re-render with the new item.
+- The bug was not specifically keyboard handling
+- The bug was not specifically pager-link markup
+- The bug only appeared when the **current page being left** owned a `VideoPlayer`
+- Therefore the most likely cause had to be in video-page lifecycle logic
 
-### Relevant code paths
+### Actual cause
 
-**Keyboard handler** (`App.tsx`, inside `StudyDesk`):
+`VideoPlayer.tsx` performed a synchronous progress save during unmount:
 
-```
-if (nextItem && e.key.toLowerCase() === 'n') {
-  e.preventDefault()
-  navigate(href(nextItem))  // href returns /lesson/lesson-<hash> or /assignment/assignment-<hash>
-}
-```
-
-**Pager links** (`ItemLayout.tsx`):
-
-```
-<Link className="card pager-link" to={href(previous)}>
-<Link className="card pager-link right" to={href(next)}>
+```ts
+onProgress(video.currentTime, video.duration)
 ```
 
-Both use `href()` from `utils/helpers.ts` which returns `/lesson/${item.id}` or `/assignment/${item.id}`.
+That synchronous state write collided with the route transition. The URL update succeeded, but the view stayed stuck on the old video page.
 
-**LessonView** (`components/LessonView.tsx`):
+### Actual fix
 
-```
-const itemId = useParams().itemId
-const lesson = items.find(
-  (item): item is LessonItem => item.id === itemId && item.kind === 'lesson',
-)
-```
+The final position is still captured during unmount, but the write is deferred:
 
-The component reads `itemId` from `useParams()`. When the URL changes from `/lesson/lesson-aaa` to `/lesson/lesson-bbb`, React Router should provide the new `itemId` via `useParams()`, causing the component to re-render with the new lesson.
-
-**VideoPlayer** (`components/VideoPlayer.tsx`):
-
-```
-<VideoPlayer key={lesson.id} src={mediaUrl(lesson.relativePath)} ... />
+```ts
+const finalPosition = video.currentTime
+const finalDuration = video.duration
+window.setTimeout(() => onProgress(finalPosition, finalDuration), 0)
 ```
 
-The `key={lesson.id}` prop should force React to unmount/remount the VideoPlayer when the lesson changes.
+This allows the navigation to finish first while still preserving the final playback position almost immediately.
 
-### Analysis completed (not yet verified at runtime)
+### Secondary hardening kept in place
 
-1. **Item IDs are clean.** `stableId()` in `shared.mjs` generates `prefix-<12 hex chars>` (e.g., `lesson-a1b2c3d4e5f6`). No special characters, no URL encoding issues.
+- Lesson/assignment route elements are keyed by `location.pathname`
+- `App.tsx` derives the active lesson/assignment and passes it into the view
+- `LessonView.tsx` and `AssignmentView.tsx` no longer rely solely on local `useParams()` lookup
 
-2. **`nextItem` / `previousItem` should be defined.** They are computed from `activeItemIndex` which is derived from `activeItem`. Since `M` and `B` work (proving `activeItem` is truthy), `activeItemIndex` should be valid, and unless the user is on the very first/last item, both neighbors should exist.
+These changes were not the decisive fix on their own, but they are reasonable guardrails at the route boundary.
 
-3. **`orderedItems()` produces a flat array of all items across all weeks.** It uses `flatMap` over `index.weeks`, so `items[n+1]` can cross week boundaries. `ItemLayout.tsx` computes prev/next independently using the same `items` array and `findIndex`.
+### Investigation method that worked
 
-4. **Capture phase was added.** The keyboard listener was moved to `{ capture: true }` to fire before any child handlers. This didn't fix N/P, which is consistent with the bug being a navigation/render issue, not an event propagation issue.
+The decisive debugging step was runtime reproduction with Playwright:
 
-5. **VideoPlayer has no keydown handlers.** Checked — there are no `onKeyDown` or `addEventListener('keydown', ...)` in VideoPlayer.tsx.
+- prove `pdf -> video` works
+- prove `video -> video` fails
+- prove `video -> pdf` fails
 
-6. **React Router version:** `react-router-dom@^7.14.0`. This is React Router v7, which has significant architectural changes from v6. The `matchPath`, `useParams`, `useNavigate`, `<Link>`, and route parameter reactivity may behave differently.
-
-### Hypotheses to investigate (ordered by likelihood)
-
-1. **React Router v7 param change not triggering re-render.** When navigating from `/lesson/lesson-aaa` to `/lesson/lesson-bbb`, both match the same `<Route path="/lesson/:itemId">`. In some React Router versions or configurations, changing only the dynamic segment may not cause the route's `element` to unmount/remount. If `LessonView` doesn't re-render, `useParams().itemId` might return the stale value. **Test:** Add a `key` prop to the `<Route>`'s element based on `location.pathname` or `itemId`, or restructure so the component reacts to param changes.
-
-2. **Stale closure in the keyboard `useEffect`.** The effect captures `nextItem` and `previousItem` in its closure. If these variables are referentially new objects on every render (they come from array indexing into a `useMemo`'d array, so they should be stable), the effect should re-run. But if something prevents the effect from re-running after navigation, the stale `nextItem` could cause repeated navigations to the same (now-current) URL. **Test:** Log `nextItem?.id` and `previousItem?.id` inside the keydown handler to see if they're stale.
-
-3. **`LessonView` uses `items.find()` instead of `itemMap.get()`.** The `LessonView` component does `items.find((item) => item.id === itemId ...)` on every render. If `itemId` from `useParams()` isn't updating (hypothesis 1), the find returns the old lesson, and nothing visually changes.
-
-4. **The pager-link intermittent behavior (works after refresh) suggests a hydration or initial-render timing issue.** The `<Link>` component from React Router v7 might handle client-side navigation differently on first load vs. subsequent navigations.
-
-### Suggested fix approach
-
-Start with hypothesis 1 — force React to re-mount the lesson/assignment view when the item ID changes:
-
-- **Quick test:** Add `key={location.pathname}` to the route elements in `App.tsx`:
-  ```
-  <Route path="/lesson/:itemId" element={<LessonView key={itemId} ... />} />
-  ```
-  This would force a full re-mount on every param change.
-
-- **Better long-term fix:** Ensure `LessonView` and `AssignmentView` properly react to `useParams()` changes via `useEffect` dependencies or by structuring the component to derive all state from the current `itemId`.
-
-- **For the keyboard shortcuts specifically:** After fixing the render issue, also verify that `nextItem`/`previousItem` update correctly after navigation by checking the effect dependency values.
-
-### What has NOT been tried
-
-- No runtime debugging (console logs, React DevTools) has been done
-- No React Router v7-specific documentation has been consulted for param-change reactivity
-- The bug has not been tested with `npm run dev` (hot reload) vs. `npm start` (production build)
-- No `key` prop fix has been attempted
-- The `AssignmentView` variant has not been tested (only lesson/video navigation was reported)
-
+That isolated the bug to video-page unmount behavior much more effectively than static reasoning alone.
