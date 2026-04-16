@@ -13,7 +13,7 @@ React + Vite frontend, Express backend, JSON file persistence. Port 4307.
 ## Commands
 
 ```powershell
-cd "D:\download_extracted\final\Harkirat Cohort 0 - 1\study-desk"
+cd "<your-course-root>\study-desk"
 npm start          # Production server on port 4307
 npm run dev        # Dev mode with hot reload
 npm run build      # tsc + vite build

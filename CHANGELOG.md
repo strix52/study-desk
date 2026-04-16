@@ -425,7 +425,7 @@ If a change might touch original study material, stop and avoid the change unles
 ### Protected source content (READ-ONLY)
 
 ```
-D:\download_extracted\final\Harkirat Cohort 0 - 1\
+<your-course-root>\
 ├── Week - 0 ( Prerequisites - HTML , CSS)/     ← 31 folders like this
 ├── Week - 1 ( JS Foundation , API ) Part - 1/
 ├── ...
@@ -479,7 +479,7 @@ study-desk/
 ### Root files
 
 ```
-D:\download_extracted\final\Harkirat Cohort 0 - 1\
+<your-course-root>\
 ├── .gitignore               ← Excludes *.mp4, node_modules, dist, .study-desk-data, .cursor
 ├── AGENTS.md                ← Lean agent context (universal, auto-loaded by all tools)
 ├── CLAUDE.md                ← Points to AGENTS.md (for Claude Code)
@@ -543,7 +543,7 @@ Double-click `start-study-desk.bat`. It checks dependencies, builds if needed, s
 ### Manual commands
 
 ```powershell
-cd "D:\download_extracted\final\Harkirat Cohort 0 - 1\study-desk"
+cd "<your-course-root>\study-desk"
 
 # Production-style local server
 npm start
