@@ -57,15 +57,13 @@ After v2, the lesson page had a critical layout problem: the video player was pu
 
 **Changes made:**
 
-1. **`ItemLayout.tsx` rewritten** — replaced the card header + button row with a compact inline header:
-   - Title and eyebrow on the left, compact 32px icon buttons on the right
-   - Status/bookmark/complete actions are icon-only buttons (`btn-sm`)
-   - "Open asset / folder / editor" moved into a dropdown menu (chevron button with `.more-menu`)
-   - Video/content area (`viewer-area`) appears immediately after the header with no card wrapper
-
-2. **`App.css` updated** — new styles for `.item-header`, `.btn-sm`, `.more-menu-wrap`, `.more-menu`, `.viewer-area`; shell padding reduced from 16px to 12px, gap from 14px to 12px
-
-3. **`align-content: start`** added to `.workspace` and `.panel` grids to prevent row stretching
+1. `**ItemLayout.tsx` rewritten** — replaced the card header + button row with a compact inline header:
+  - Title and eyebrow on the left, compact 32px icon buttons on the right
+  - Status/bookmark/complete actions are icon-only buttons (`btn-sm`)
+  - "Open asset / folder / editor" moved into a dropdown menu (chevron button with `.more-menu`)
+  - Video/content area (`viewer-area`) appears immediately after the header with no card wrapper
+2. `**App.css` updated** — new styles for `.item-header`, `.btn-sm`, `.more-menu-wrap`, `.more-menu`, `.viewer-area`; shell padding reduced from 16px to 12px, gap from 14px to 12px
+3. `**align-content: start`** added to `.workspace` and `.panel` grids to prevent row stretching
 
 ### v2.2 — Git setup (COMPLETED)
 
@@ -81,32 +79,26 @@ This was a focused cleanup pass to make the app denser and less wasteful on scre
 **Changes made:**
 
 1. **Left rail compacted**
-   - Hero card slimmed down to a one-line title + inline resume link
-   - Separate left-rail stats card removed to give more vertical room to the curriculum list
-
+  - Hero card slimmed down to a one-line title + inline resume link
+  - Separate left-rail stats card removed to give more vertical room to the curriculum list
 2. **Dashboard simplified**
-   - Old course overview metrics block removed
-   - Dashboard now opens on a resume strip + dominant week cards layout
-
+  - Old course overview metrics block removed
+  - Dashboard now opens on a resume strip + dominant week cards layout
 3. **Item header tightened**
-   - Redundant textual status badge removed
-   - Lit icon buttons are the single source of truth for complete / in-progress / bookmarked state
-
+  - Redundant textual status badge removed
+  - Lit icon buttons are the single source of truth for complete / in-progress / bookmarked state
 4. **Notes input refined**
-   - Smaller default note box
-   - `field-sizing: content` enabled for auto-growth
-   - Placeholder shortened
-
+  - Smaller default note box
+  - `field-sizing: content` enabled for auto-growth
+  - Placeholder shortened
 5. **Video speed controls reduced**
-   - Full 6-button speed strip replaced with a compact popover trigger
-
+  - Full 6-button speed strip replaced with a compact popover trigger
 6. **Typography adjusted**
-   - Default `h1/h2/h3` moved to sans-serif
-   - Newsreader serif reserved for the item title where emphasis is useful
-
+  - Default `h1/h2/h3` moved to sans-serif
+  - Newsreader serif reserved for the item title where emphasis is useful
 7. **CSS cleanup**
-   - Dead `Metric` component removed
-   - Old overview/stats styles removed
+  - Dead `Metric` component removed
+  - Old overview/stats styles removed
 
 ### v2.4 — Learning-flow improvements (COMPLETED)
 
@@ -115,84 +107,81 @@ This pass was explicitly scoped for the user's **personal learning workflow**, n
 **Changes made:**
 
 1. **Video progress reliability fixed**
-   - `VideoPlayer.tsx` now saves the current position on component unmount
-   - This closes the navigation-loss gap where switching lessons could lose the last few seconds of watch position
-
+  - `VideoPlayer.tsx` now saves the current position on component unmount
+  - This closes the navigation-loss gap where switching lessons could lose the last few seconds of watch position
 2. **Auto-complete threshold added**
-   - Videos now mark complete at `>=95%` watched instead of only on the native `ended` event
-   - This avoids "ghost in-progress" items when the user finishes the meaningful content but skips trailing credits/outro
-
+  - Videos now mark complete at `>=95%` watched instead of only on the native `ended` event
+  - This avoids "ghost in-progress" items when the user finishes the meaningful content but skips trailing credits/outro
 3. **Duplicate completion prevented**
-   - Completion logic was guarded so the `95%` threshold and native `ended` event do not both fire completion handling
-
-4. **`lastActiveItemId` made more accurate**
-   - Opening an item still records it as recent and marks it in-progress
-   - But `lastActiveItemId` is no longer updated on every click/mount
-   - Instead, lesson and assignment views promote an item to "last active" only after roughly 5 seconds of dwell time
-   - This keeps Resume pointing at what the user actually studied rather than whatever they glanced at
-
+  - Completion logic was guarded so the `95%` threshold and native `ended` event do not both fire completion handling
+4. `**lastActiveItemId` made more accurate**
+  - Opening an item still records it as recent and marks it in-progress
+  - But `lastActiveItemId` is no longer updated on every click/mount
+  - Instead, lesson and assignment views promote an item to "last active" only after roughly 5 seconds of dwell time
+  - This keeps Resume pointing at what the user actually studied rather than whatever they glanced at
 5. **Keyboard shortcuts added**
-   - `/` opens the command palette
-   - `N` goes to the next lesson/assignment
-   - `P` goes to the previous lesson/assignment
-   - `M` toggles complete / not-started on the active item
-   - `B` toggles bookmark on the active item
-   - `Esc` closes menus
-   - All of these are guarded so they do not fire while the user is typing in an input/textarea/contenteditable field
-
+  - `/` opens the command palette
+  - `N` goes to the next lesson/assignment
+  - `P` goes to the previous lesson/assignment
+  - `M` toggles complete / not-started on the active item
+  - `B` toggles bookmark on the active item
+  - `Esc` closes menus
+  - All of these are guarded so they do not fire while the user is typing in an input/textarea/contenteditable field
 6. **Command palette empty state improved**
-   - Empty query no longer shows an unhelpful alphabetical dump
-   - It now shows a personal-use blend of **Recents** and **Next up**
-   - Falls back to generic results only if there is not enough personal state yet
-
+  - Empty query no longer shows an unhelpful alphabetical dump
+  - It now shows a personal-use blend of **Recents** and **Next up**
+  - Falls back to generic results only if there is not enough personal state yet
 7. **Dashboard continue flow improved**
-   - Dashboard now shows a 3-item continue queue instead of only a single resume link
-   - The queue starts from the current last-active item and then shows the next unfinished items
-
+  - Dashboard now shows a 3-item continue queue instead of only a single resume link
+  - The queue starts from the current last-active item and then shows the next unfinished items
 8. **Remaining-time metric surfaced**
-   - Helper logic aggregates stored video durations and playback positions
-   - Dashboard now shows the estimated remaining time across unfinished tracked videos
-   - This uses existing data already being stored in `itemStates`
-
+  - Helper logic aggregates stored video durations and playback positions
+  - Dashboard now shows the estimated remaining time across unfinished tracked videos
+  - This uses existing data already being stored in `itemStates`
 9. **Week re-entry made faster**
-   - `WeekView.tsx` now includes an `Incomplete only` toggle
-   - This is a pure view filter; it does not mutate progress state
-   - If a week is fully done and the filter is enabled, the view shows an "Everything in this week is complete" state
-
+  - `WeekView.tsx` now includes an `Incomplete only` toggle
+  - This is a pure view filter; it does not mutate progress state
+  - If a week is fully done and the filter is enabled, the view shows an "Everything in this week is complete" state
 10. **Verification completed**
-   - `npm run lint` passed
-   - `npx tsc -b --noEmit` passed
-   - `npm run build` passed
+  - `npm run lint` passed
+  - `npx tsc -b --noEmit` passed
+  - `npm run build` passed
 
-### v2.4.1 — Shortcut discoverability help (CURRENT WORKING TREE)
+### v2.4.1 — Shortcut discoverability help (COMMITTED)
 
 After v2.4, the user correctly pointed out that keyboard shortcuts are hard to learn if they are invisible. A small discoverability surface has now been added in the top bar.
 
 **Changes made:**
 
 1. **Shortcuts help button**
-   - A keyboard icon button was added beside the search trigger in the top bar
-
+  - A keyboard icon button was added beside the search trigger in the top bar
 2. **Shortcuts popover**
-   - Clicking the button opens a small popover listing the current supported shortcuts:
-     - `Ctrl + K`
-     - `/`
-     - `N`
-     - `P`
-     - `M`
-     - `B`
-     - `Esc`
-
+  - Clicking the button opens a small popover listing the current supported shortcuts:
+    - `Ctrl + K`
+    - `/`
+    - `N`
+    - `P`
+    - `M`
+    - `B`
+    - `Esc`
 3. **Popover behavior**
-   - The shortcuts popover closes on `Esc`
-   - It also closes on mouse leave
-
+  - The shortcuts popover closes on `Esc`
+  - It also closes on mouse leave
 4. **Verification completed**
-   - `npm run lint` passed
-   - `npx tsc -b --noEmit` passed
-   - `npm run build` passed
+  - `npm run lint` passed
+  - `npx tsc -b --noEmit` passed
+  - `npm run build` passed
 
-**Note:** This shortcuts-help change is currently reflected in the working tree and should be treated as part of the latest live context even if a future agent sees it as not yet committed.
+### v2.4.2 — Keyboard capture phase fix (CURRENT WORKING TREE)
+
+The keyboard event listener in `App.tsx` was changed from bubble phase to capture phase to ensure shortcuts fire before any child element handlers (e.g., the `<video>` element).
+
+**Change:**
+
+- `window.addEventListener('keydown', onKeyDown)` → `window.addEventListener('keydown', onKeyDown, { capture: true })`
+- Same for the cleanup `removeEventListener`
+
+This was intended to fix the N/P shortcut issue but **did not resolve it**. See the open bug investigation in Section 12 below.
 
 ## 3. Current Status
 
@@ -325,10 +314,10 @@ study-desk/
 │       ├── VideoPlayer.tsx   ← Custom player: resume, speed, auto-complete, progress saving
 │       ├── CommandPalette.tsx← Search palette with keyboard navigation
 │       ├── ProgressBar.tsx   ← Reusable progress bar
-│       ├── StatusBadge.tsx   ← Status icon (completed/in-progress/not-started)
-│       └── Metric.tsx        ← Number + label metric block
+│       └── StatusBadge.tsx   ← Status icon (completed/in-progress/not-started)
 ├── .gitignore               ← Excludes node_modules, dist, .study-desk-data
 ├── package.json
+├── README_FOR_AGENTS.md     ← Short operational guide for LLMs (points to this file)
 ├── vite.config.mjs          ← Active vite config (used by scripts)
 ├── vite.config.ts           ← Legacy vite config (not used)
 ├── tsconfig.json
@@ -372,6 +361,7 @@ study-desk/.study-desk-data/
 **State management:** All state lives in the `StudyDesk` component and flows down via props. Actions are memoized with `useCallback`. Lists are memoized with `useMemo`. State saves are debounced (400ms) to the backend.
 
 **Key state shape (`UserState`):**
+
 - `itemStates: Record<string, ItemState>` — per-item status, bookmarked, playbackPosition, duration
 - `notes: Record<string, NoteEntry>` — per-item notes
 - `recent: RecentEntry[]` — recently visited items
@@ -420,22 +410,14 @@ npx eslint src/
 ## 9. Known Quirks / Limitations
 
 1. **Data folder location** — app data lives under `study-desk/.study-desk-data/` rather than an external sidecar. Works fine but isn't the ideal separation.
-
 2. **Assignment grouping is heuristic** — based on folder structure and naming conventions. Summary quality depends on README or starter comments being present.
-
 3. **Editor launch is best-effort** — tries `code`, `cursor`, `code-insiders` in order, falling back to Explorer.
-
 4. **Vite config quirk** — the active config is `vite.config.mjs` (not `vite.config.ts`).
-
 5. **Video position save granularity** — saved every 5s during playback and on pause/end. A crash could lose up to 5s of position data.
-   Navigation-away loss is largely fixed because unmount now forces a save, but abrupt crashes can still lose a few seconds.
-
+  Navigation-away loss is largely fixed because unmount now forces a save, but abrupt crashes can still lose a few seconds.
 6. **CSS `color-mix()` usage** — requires Chrome 111+, Firefox 113+, Safari 16.2+. Fine for a local personal app.
-
 7. **No git remote** — initial commit exists on `main` branch but no remote is configured.
-
 8. **No automated tests** — the app passes type-check and lint, but there's no test suite. Manual runtime verification is recommended.
-
 9. **Shortcut help is UI-only** — the top-bar shortcut popover is a discoverability aid, not a full help modal or onboarding system.
 
 ## 10. Implementation Decisions
@@ -487,7 +469,7 @@ Avoid:
 
 Safe areas:
 
-- `study-desk/src/*`
+- `study-desk/src/`*
 - `study-desk/server/*`
 - `study-desk/package.json`
 - `study-desk/vite.config.mjs`
@@ -501,3 +483,106 @@ Unsafe areas (need explicit user approval):
 - `Harkirat Assignment/`
 - any lecture asset (video, PDF, image)
 - any assignment asset (README, starter, test, solution)
+
+## 12. Open Bug: N/P Navigation Broken (URL changes, content does not)
+
+**Priority: HIGH** — This bug affects both the `N`/`P` keyboard shortcuts and the prev/next pager `<Link>` components below the player. It is a navigation/rendering problem, not a keyboard-only problem.
+
+### Symptoms (user-reported)
+
+1. **N and P keyboard shortcuts:** Pressing `N` or `P` while viewing a lesson changes the browser URL to the correct next/previous item, but the page content does not update. The video player, title, and all visible content remain on the old item.
+2. **Prev/Next pager links (below the player):** Clicking the `<Link>` previous/next buttons in `ItemLayout.tsx` also changes the URL but does not re-render the content.
+3. **Refresh workaround for pager links:** After the pager link bug occurs, refreshing the page a few times can "unstick" it, after which the pager links start working normally for sequential navigation.
+4. **Refresh does NOT fix N/P shortcuts:** The keyboard shortcuts remain broken even after refreshes.
+5. **Other shortcuts work fine:** `M` (mark complete), `B` (bookmark), `/` and `Ctrl+K` (command palette), `Esc` (close menus) all work correctly. This means the keyboard handler IS firing and `activeItem` IS correctly resolved.
+6. **Tested with focus in different places:** User tried clicking on the video player first, then clicking on the page body. Neither helped.
+
+### What the symptoms tell us
+
+The core issue is almost certainly **not keyboard-related**. Both the keyboard shortcut (`navigate(href(nextItem))`) and the pager link (`<Link to={href(next)}>`) produce the same broken behavior: URL updates but content stays stale. This points to a **React Router navigation / component re-render problem** where changing the URL parameter (`:itemId`) does not trigger the `LessonView` or `AssignmentView` component to re-render with the new item.
+
+### Relevant code paths
+
+**Keyboard handler** (`App.tsx`, inside `StudyDesk`):
+
+```
+if (nextItem && e.key.toLowerCase() === 'n') {
+  e.preventDefault()
+  navigate(href(nextItem))  // href returns /lesson/lesson-<hash> or /assignment/assignment-<hash>
+}
+```
+
+**Pager links** (`ItemLayout.tsx`):
+
+```
+<Link className="card pager-link" to={href(previous)}>
+<Link className="card pager-link right" to={href(next)}>
+```
+
+Both use `href()` from `utils/helpers.ts` which returns `/lesson/${item.id}` or `/assignment/${item.id}`.
+
+**LessonView** (`components/LessonView.tsx`):
+
+```
+const itemId = useParams().itemId
+const lesson = items.find(
+  (item): item is LessonItem => item.id === itemId && item.kind === 'lesson',
+)
+```
+
+The component reads `itemId` from `useParams()`. When the URL changes from `/lesson/lesson-aaa` to `/lesson/lesson-bbb`, React Router should provide the new `itemId` via `useParams()`, causing the component to re-render with the new lesson.
+
+**VideoPlayer** (`components/VideoPlayer.tsx`):
+
+```
+<VideoPlayer key={lesson.id} src={mediaUrl(lesson.relativePath)} ... />
+```
+
+The `key={lesson.id}` prop should force React to unmount/remount the VideoPlayer when the lesson changes.
+
+### Analysis completed (not yet verified at runtime)
+
+1. **Item IDs are clean.** `stableId()` in `shared.mjs` generates `prefix-<12 hex chars>` (e.g., `lesson-a1b2c3d4e5f6`). No special characters, no URL encoding issues.
+
+2. **`nextItem` / `previousItem` should be defined.** They are computed from `activeItemIndex` which is derived from `activeItem`. Since `M` and `B` work (proving `activeItem` is truthy), `activeItemIndex` should be valid, and unless the user is on the very first/last item, both neighbors should exist.
+
+3. **`orderedItems()` produces a flat array of all items across all weeks.** It uses `flatMap` over `index.weeks`, so `items[n+1]` can cross week boundaries. `ItemLayout.tsx` computes prev/next independently using the same `items` array and `findIndex`.
+
+4. **Capture phase was added.** The keyboard listener was moved to `{ capture: true }` to fire before any child handlers. This didn't fix N/P, which is consistent with the bug being a navigation/render issue, not an event propagation issue.
+
+5. **VideoPlayer has no keydown handlers.** Checked — there are no `onKeyDown` or `addEventListener('keydown', ...)` in VideoPlayer.tsx.
+
+6. **React Router version:** `react-router-dom@^7.14.0`. This is React Router v7, which has significant architectural changes from v6. The `matchPath`, `useParams`, `useNavigate`, `<Link>`, and route parameter reactivity may behave differently.
+
+### Hypotheses to investigate (ordered by likelihood)
+
+1. **React Router v7 param change not triggering re-render.** When navigating from `/lesson/lesson-aaa` to `/lesson/lesson-bbb`, both match the same `<Route path="/lesson/:itemId">`. In some React Router versions or configurations, changing only the dynamic segment may not cause the route's `element` to unmount/remount. If `LessonView` doesn't re-render, `useParams().itemId` might return the stale value. **Test:** Add a `key` prop to the `<Route>`'s element based on `location.pathname` or `itemId`, or restructure so the component reacts to param changes.
+
+2. **Stale closure in the keyboard `useEffect`.** The effect captures `nextItem` and `previousItem` in its closure. If these variables are referentially new objects on every render (they come from array indexing into a `useMemo`'d array, so they should be stable), the effect should re-run. But if something prevents the effect from re-running after navigation, the stale `nextItem` could cause repeated navigations to the same (now-current) URL. **Test:** Log `nextItem?.id` and `previousItem?.id` inside the keydown handler to see if they're stale.
+
+3. **`LessonView` uses `items.find()` instead of `itemMap.get()`.** The `LessonView` component does `items.find((item) => item.id === itemId ...)` on every render. If `itemId` from `useParams()` isn't updating (hypothesis 1), the find returns the old lesson, and nothing visually changes.
+
+4. **The pager-link intermittent behavior (works after refresh) suggests a hydration or initial-render timing issue.** The `<Link>` component from React Router v7 might handle client-side navigation differently on first load vs. subsequent navigations.
+
+### Suggested fix approach
+
+Start with hypothesis 1 — force React to re-mount the lesson/assignment view when the item ID changes:
+
+- **Quick test:** Add `key={location.pathname}` to the route elements in `App.tsx`:
+  ```
+  <Route path="/lesson/:itemId" element={<LessonView key={itemId} ... />} />
+  ```
+  This would force a full re-mount on every param change.
+
+- **Better long-term fix:** Ensure `LessonView` and `AssignmentView` properly react to `useParams()` changes via `useEffect` dependencies or by structuring the component to derive all state from the current `itemId`.
+
+- **For the keyboard shortcuts specifically:** After fixing the render issue, also verify that `nextItem`/`previousItem` update correctly after navigation by checking the effect dependency values.
+
+### What has NOT been tried
+
+- No runtime debugging (console logs, React DevTools) has been done
+- No React Router v7-specific documentation has been consulted for param-change reactivity
+- The bug has not been tested with `npm run dev` (hot reload) vs. `npm start` (production build)
+- No `key` prop fix has been attempted
+- The `AssignmentView` variant has not been tested (only lesson/video navigation was reported)
+

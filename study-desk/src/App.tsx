@@ -266,8 +266,8 @@ function StudyDesk({
         navigate(href(previousItem))
       }
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    window.addEventListener('keydown', onKeyDown, { capture: true })
+    return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
   }, [activeItem, navigate, nextItem, paletteOpen, previousItem, setStatus, toggleBookmark, userState.itemStates])
 
   const updateNote = useCallback((itemId: string, body: string) => {
