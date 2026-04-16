@@ -1165,6 +1165,24 @@
   }
 }
 
+/* ===== Mobile hamburger (hidden on desktop) ===== */
+
+.mobile-menu-btn {
+  display: none;
+}
+
+/* ===== Mobile drawer ===== */
+
+.mobile-drawer-backdrop {
+  display: none;
+}
+
+/* ===== Mobile bottom bar (hidden on desktop) ===== */
+
+.mobile-bottom-bar {
+  display: none;
+}
+
 /* ===== Responsive ===== */
 
 @media (max-width: 1280px) {
@@ -1187,7 +1205,8 @@
 @media (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
-    padding: 12px;
+    padding: 8px;
+    padding-bottom: 72px;
   }
 
   .left-panel {
@@ -1198,13 +1217,208 @@
     grid-template-columns: 1fr;
   }
 
+  .right-panel .utility-card {
+    display: none;
+  }
+
   .week-grid,
   .pager,
   .timeline-card {
     grid-template-columns: 1fr;
   }
 
+  .pager {
+    display: none;
+  }
+
   .media {
-    min-height: 40vh;
+    min-height: unset;
+    aspect-ratio: 16 / 9;
+    max-height: 50vh;
+    border-radius: 8px;
+  }
+
+  .item-title {
+    white-space: normal;
+    font-size: 1.05rem;
+  }
+
+  .item-header-actions .more-menu-wrap {
+    display: none;
+  }
+
+  .search-trigger span {
+    display: none;
+  }
+
+  .search-trigger kbd {
+    display: none;
+  }
+
+  .search-trigger {
+    max-width: 44px;
+    min-width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .shortcuts-wrap {
+    display: none;
+  }
+
+  .brand span {
+    display: none;
+  }
+
+  .topbar {
+    gap: 6px;
+  }
+
+  /* -- Mobile hamburger -- */
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  /* -- Mobile drawer overlay -- */
+  .mobile-drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(20, 25, 31, 0.5);
+    backdrop-filter: blur(4px);
+    animation: fade-in 150ms ease;
+  }
+
+  [data-theme='dark'] .mobile-drawer-backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .mobile-drawer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(320px, 85vw);
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    box-shadow: var(--panel-shadow);
+    padding: 16px;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    overflow-y: auto;
+    animation: drawer-slide-in 200ms ease;
+  }
+
+  @keyframes drawer-slide-in {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .mobile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .mobile-drawer-weeks {
+    display: grid;
+    gap: 8px;
+    max-height: calc(100svh - 200px);
+    overflow-y: auto;
+  }
+
+  .mobile-drawer-section {
+    display: grid;
+    gap: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .mobile-drawer-section strong {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  /* -- Mobile bottom bar -- */
+  .mobile-bottom-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
+    justify-content: space-around;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mobile-bottom-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: none;
+    background: none;
+    color: var(--muted-strong);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 120ms ease, color 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-bottom-btn:active {
+    background: var(--surface-hover);
+  }
+
+  .mobile-bottom-btn.disabled {
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  .mobile-bottom-btn.active-completed {
+    color: var(--completed);
+  }
+
+  .mobile-bottom-btn.active-bookmark {
+    color: var(--accent);
+  }
+
+  /* -- Touch improvements -- */
+  .btn-sm {
+    width: 40px;
+    height: 40px;
+  }
+
+  .utility-link {
+    padding: 12px;
+    min-height: 44px;
+  }
+
+  .week-link {
+    padding: 14px;
+  }
+
+  .palette-result {
+    padding: 14px;
+    min-height: 44px;
+  }
+
+  .note-input {
+    font-size: 16px;
   }
 }

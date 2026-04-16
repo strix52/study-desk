@@ -11,6 +11,12 @@ if not exist "%APP_DIR%\package.json" (
   exit /b 1
 )
 
+netsh advfirewall firewall show rule name="Study Desk" >nul 2>&1
+if errorlevel 1 (
+  echo Adding firewall rule for Study Desk on port 4307...
+  netsh advfirewall firewall add rule name="Study Desk" dir=in action=allow protocol=TCP localport=4307 >nul 2>&1
+)
+
 cd /d "%APP_DIR%"
 
 if not exist "node_modules" (

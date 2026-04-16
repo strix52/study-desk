@@ -17,15 +17,21 @@ import {
   useNavigate,
 } from 'react-router-dom'
 import {
+  ArrowLeft,
+  ArrowRight,
+  Bookmark,
+  CheckCircle2,
   FileCode2,
   FileText,
   Keyboard,
   LibraryBig,
+  Menu,
   Moon,
   RefreshCcw,
   Search,
   Sun,
   Video,
+  X,
 } from 'lucide-react'
 import './App.css'
 import { getBootstrap, openLocalPath, refreshCourseIndex, saveUserState } from './api'
@@ -90,6 +96,7 @@ function StudyDesk({
   const [message, setMessage] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const deferredQuery = useDeferredValue(query)
@@ -122,6 +129,10 @@ function StudyDesk({
     if (activeItem) return activeItem.weekNumber
     return undefined
   }, [location.pathname, activeItem])
+
+  useEffect(() => {
+    setDrawerOpen(false)
+  }, [location.pathname])
 
   useEffect(() => {
     if (activeWeekNumber == null || !weekListRef.current) return
@@ -409,6 +420,14 @@ function StudyDesk({
         {/* Workspace */}
         <section className="workspace">
           <header className="topbar">
+            <button
+              className="icon-button mobile-menu-btn"
+              onClick={() => setDrawerOpen(true)}
+              type="button"
+              title="Open menu"
+            >
+              <Menu size={18} />
+            </button>
             <Link className="brand" to="/">
               <LibraryBig size={18} />
               <span>Study desk</span>
@@ -565,6 +584,98 @@ function StudyDesk({
           {message && <div className="card message-card">{message}</div>}
         </aside>
       </div>
+
+      {drawerOpen && (
+        <div className="mobile-drawer-backdrop" onClick={() => setDrawerOpen(false)}>
+          <aside className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-drawer-header">
+              <span className="hero-title">{index.courseTitle}</span>
+              <button className="icon-button" onClick={() => setDrawerOpen(false)} type="button">
+                <X size={18} />
+              </button>
+            </div>
+            <ProgressBar value={overall.fraction} className="hero-progress" />
+            <span className="hero-stat">
+              {Math.round(overall.fraction * 100)}% · {overall.completed}/{overall.total} ·{' '}
+              {index.stats.weeks}w · {index.stats.lessons}L · {index.stats.assignments}A
+            </span>
+            <div className="mobile-drawer-weeks">
+              {index.weeks.map((week) => {
+                const progress = weekProgress(week, userState)
+                const isActive = week.weekNumber === activeWeekNumber
+                return (
+                  <Link
+                    className={`week-link${isActive ? ' active' : ''}`}
+                    key={week.id}
+                    to={`/week/${week.weekNumber}`}
+                  >
+                    <span className="week-link-top">
+                      <strong>{week.weekLabel}</strong>
+                      <StatusBadge status={progress.status} />
+                    </span>
+                    <span className="week-title">{week.title}</span>
+                    <ProgressBar value={progress.fraction} className="week-link-progress" />
+                    <small>
+                      {progress.completed}/{progress.total} complete
+                    </small>
+                  </Link>
+                )
+              })}
+            </div>
+            {bookmarks.length > 0 && (
+              <div className="mobile-drawer-section">
+                <strong>Bookmarks</strong>
+                {bookmarks.slice(0, 5).map((item) => (
+                  <Link className="utility-link" key={item.id} to={href(item)}>
+                    <span className="utility-link-main">
+                      <ItemTypeIcon item={item} />
+                      {item.title}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
+
+      {activeItem && (
+        <div className="mobile-bottom-bar">
+          {previousItem ? (
+            <Link className="mobile-bottom-btn" to={href(previousItem)} title="Previous">
+              <ArrowLeft size={18} />
+            </Link>
+          ) : (
+            <div className="mobile-bottom-btn disabled"><ArrowLeft size={18} /></div>
+          )}
+          <button
+            className={`mobile-bottom-btn${userState.itemStates[activeItem.id]?.status === 'completed' ? ' active-completed' : ''}`}
+            onClick={() => {
+              const s = userState.itemStates[activeItem.id]?.status
+              setStatus(activeItem.id, s === 'completed' ? 'not-started' : 'completed')
+            }}
+            type="button"
+            title="Mark complete"
+          >
+            <CheckCircle2 size={18} />
+          </button>
+          <button
+            className={`mobile-bottom-btn${userState.itemStates[activeItem.id]?.bookmarked ? ' active-bookmark' : ''}`}
+            onClick={() => toggleBookmark(activeItem.id)}
+            type="button"
+            title="Bookmark"
+          >
+            <Bookmark size={18} />
+          </button>
+          {nextItem ? (
+            <Link className="mobile-bottom-btn" to={href(nextItem)} title="Next">
+              <ArrowRight size={18} />
+            </Link>
+          ) : (
+            <div className="mobile-bottom-btn disabled"><ArrowRight size={18} /></div>
+          )}
+        </div>
+      )}
 
       {paletteOpen && (
         <CommandPalette

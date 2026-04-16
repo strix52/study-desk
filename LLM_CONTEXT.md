@@ -223,15 +223,82 @@ window.setTimeout(() => onProgress(finalPosition, finalDuration), 0)
   - the active lesson/assignment is derived in `App.tsx` and passed into the child view
 - But the decisive fix was the deferred progress save in `VideoPlayer.tsx`
 
+### v2.5 — Phone access and mobile UI (COMPLETED)
+
+The user needed to watch lectures on their phone while keeping the laptop free for coding. This required network access from phone to laptop and a fully usable mobile interface.
+
+**Networking approach chosen: Direct LAN over USB tethering**
+
+When the phone USB-tethers to the laptop, Windows creates an RNDIS network adapter. Both devices are on the same local subnet (typically `192.168.42.x`). The Express server already binds to all interfaces (no hostname argument to `app.listen()`), so the phone can reach the laptop directly over the USB cable. Video data flows over the wire — zero cellular data consumed.
+
+A tunnel (ngrok/cloudflared) was considered but rejected for USB tethering scenarios: the laptop's internet comes FROM the phone's cellular, so a tunnel would send video data through the cellular connection twice (laptop -> cellular up -> tunnel -> cellular down -> phone). Direct LAN avoids this entirely.
+
+This also works on home Wi-Fi networks — both devices on the same Wi-Fi can reach each other the same way.
+
+**Changes made:**
+
+1. **Server LAN URL display** (`server/index.mjs`)
+  - Added `os.networkInterfaces()` enumeration after server starts
+  - Prints all non-loopback IPv4 addresses as `Network: http://<ip>:4307`
+  - User types the printed URL on their phone
+
+2. **Windows Firewall rule** (`start-study-desk.bat`)
+  - Added one-time `netsh advfirewall firewall add rule` for inbound TCP on port 4307
+  - Only runs if the rule doesn't already exist
+
+3. **Mobile nav drawer** (`App.tsx`, `App.css`)
+  - Hamburger button in the topbar, visible only at <=980px
+  - Slide-in drawer with: course title, overall progress bar, stats, scrollable week list with progress, bookmarks section
+  - Closes on navigation (route change) or backdrop tap
+  - `drawerOpen` state with auto-close via `useEffect` on `location.pathname`
+
+4. **Right rail collapse on mobile** (`App.css`)
+  - Utility cards (bookmarks, recents, next-up) hidden on mobile since they're accessible via drawer
+  - Notes card remains visible below content
+
+5. **Sticky bottom action bar** (`App.tsx`, `App.css`)
+  - Fixed bottom bar on lesson/assignment pages at mobile widths
+  - Contains: Previous, Mark Complete, Bookmark, Next buttons
+  - Active states show green (completed) or accent (bookmarked)
+  - Shell has `padding-bottom: 72px` to avoid content behind the bar
+  - Desktop pager hidden on mobile (replaced by bottom bar)
+
+6. **Mobile video player sizing** (`App.css`)
+  - Replaced `min-height: 40vh` with `aspect-ratio: 16/9` and `max-height: 50vh`
+  - Proper proportions on phone screens in portrait orientation
+
+7. **Touch and mobile CSS** (`App.css`, `index.css`)
+  - `-webkit-tap-highlight-color: transparent` on body
+  - `touch-action: manipulation` on all interactive elements (kills 300ms tap delay)
+  - `env(safe-area-inset-*)` padding for notched phones
+  - Enlarged tap targets: `.btn-sm` 40px, `.utility-link` min 44px, `.week-link` increased padding
+  - Note input font size 16px (prevents iOS zoom on focus)
+  - Search trigger and brand text collapse to icon-only on mobile
+  - Shortcuts popover hidden on mobile (keyboard shortcuts aren't relevant on phone)
+
+8. **Topbar mobile compaction** (`App.css`)
+  - Brand text hidden, icon-only
+  - Search trigger collapses to icon-only (no placeholder text or kbd hint)
+  - Keyboard shortcuts button hidden
+
+**Verified:**
+- `npm run lint` — zero errors
+- `npx tsc -b --noEmit` — zero errors
+- `npm run build` — succeeds
+- Tested on Android phone via USB tethering — full app works, videos play, progress syncs
+
 ## 3. Current Status
 
 ### What works
 
 - Full study desk app: dashboard, week view, lesson view, assignment view
+- **Phone access via direct LAN** — server prints Network URLs on startup, phone connects over USB tethering or Wi-Fi
+- **Mobile-optimized UI** — hamburger nav drawer, sticky bottom action bar, touch-friendly tap targets, proper video sizing
 - Video playback with resume, speed control, auto-complete
 - Video position persistence on unmount/navigation
 - Auto-complete at `>=95%` watched
 - Progress tracking (completion status, video position/duration, bookmarks)
+- Progress syncs between phone and laptop (same backend, same state file)
 - More trustworthy resume tracking via delayed engagement-based `lastActiveItemId`
 - Notes per item, browsable notes list
 - Dark mode (persisted)
@@ -246,6 +313,7 @@ window.setTimeout(() => onProgress(finalPosition, finalDuration), 0)
 - Dashboard remaining-time metric for unfinished tracked videos
 - Week view `Incomplete only` filter
 - Local file/folder/editor open actions
+- Windows Firewall rule auto-added by launcher
 - One-click launcher (`start-study-desk.bat`)
 
 ### Verified checks
@@ -271,8 +339,7 @@ These are features/improvements that were discussed or are natural next steps bu
 1. **Transcript or semantic search** — no video transcription, no full-text search of lecture content
 2. **Embedded database** — state uses JSON files, not SQLite or another DB
 3. **External data folder** — app data lives under `study-desk/.study-desk-data/` rather than an external sidecar location
-4. **Mobile/tablet optimization** — responsive breakpoints exist but haven't been thoroughly tested on small screens
-5. **Advanced keyboard system** — basic personal-use shortcuts now exist, but there is still no broader shortcut system such as customizable bindings, per-view overlays, vim-style navigation, or rich shortcut scopes
+4. **Advanced keyboard system** — basic personal-use shortcuts now exist, but there is still no broader shortcut system such as customizable bindings, per-view overlays, vim-style navigation, or rich shortcut scopes
 6. **Batch operations** — no "mark all in week as complete", no bulk status changes
 7. **Spaced repetition / review scheduling** — no SRS-style review prompts
 8. **Export/import of study state** — no way to backup/restore progress beyond the raw JSON file
@@ -460,6 +527,7 @@ npx eslint src/
 7. **No git remote** — initial commit exists on `main` branch but no remote is configured.
 8. **No automated tests** — the app passes type-check and lint, but there's no test suite. Manual runtime verification is recommended.
 9. **Shortcut help is UI-only** — the top-bar shortcut popover is a discoverability aid, not a full help modal or onboarding system.
+10. **Phone access IP may change** — the Network URL printed by the server depends on the current network interface. USB tethering and Wi-Fi may assign different IPs across sessions. The server prints the correct IP each time it starts.
 
 ## 10. Implementation Decisions
 
@@ -474,6 +542,10 @@ These decisions were deliberate:
 - Prop drilling with `useCallback`/`useMemo` over React Context (simpler, sufficient for this scale)
 - CSS custom properties for theming over a CSS-in-JS solution
 - Compact item header with icon buttons + dropdown over a full button row (v2.1 layout fix)
+- Direct LAN for phone access over tunnel/cloud solutions — avoids double-cellular-hop, zero latency, zero data waste
+- 980px mobile breakpoint — covers phones and small tablets without affecting laptop layout
+- Bottom action bar on mobile replaces pager links — better thumb reach, always visible
+- Hamburger drawer over a tab bar — preserves vertical space, curriculum list is long
 
 ## 11. If You Are Another LLM Picking This Up
 

@@ -1,5 +1,6 @@
 import express from 'express'
 import fs from 'node:fs/promises'
+import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -90,9 +91,26 @@ if (await pathExists(distPath)) {
 
 app.listen(port, () => {
   console.log(`Study desk server running on http://localhost:${port}`)
+  for (const addr of getLanAddresses()) {
+    console.log(`  Network: http://${addr}:${port}`)
+  }
   console.log(`Course root: ${courseRoot}`)
   console.log(`Data root: ${dataRoot}`)
 })
+
+function getLanAddresses() {
+  const addresses = []
+  const interfaces = os.networkInterfaces()
+  for (const entries of Object.values(interfaces)) {
+    if (!entries) continue
+    for (const entry of entries) {
+      if (!entry.internal && entry.family === 'IPv4') {
+        addresses.push(entry.address)
+      }
+    }
+  }
+  return addresses
+}
 
 async function readOrBuildIndex() {
   if (await pathExists(cachePath)) {
