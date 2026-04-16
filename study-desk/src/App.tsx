@@ -29,8 +29,10 @@ import {
   Moon,
   RefreshCcw,
   Search,
+  Smartphone,
   Sun,
   Video,
+  Wifi,
   X,
 } from 'lucide-react'
 import './App.css'
@@ -96,6 +98,9 @@ function StudyDesk({
   const [message, setMessage] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [networkOpen, setNetworkOpen] = useState(false)
+  const [networkUrls, setNetworkUrls] = useState<string[]>([])
+  const [copied, setCopied] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
@@ -319,6 +324,25 @@ function StudyDesk({
     setUserState((state) => normalizeState({ ...state, playbackSpeed: speed }))
   }, [])
 
+  const openNetwork = useCallback(async () => {
+    setNetworkOpen((v) => {
+      if (v) return false
+      fetch('/api/network')
+        .then((r) => r.json())
+        .then((d) => setNetworkUrls(d.network ?? []))
+        .catch(() => setNetworkUrls([]))
+      return true
+    })
+    setCopied('')
+  }, [])
+
+  const copyUrl = useCallback((url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(url)
+      setTimeout(() => setCopied(''), 2000)
+    })
+  }, [])
+
   const toggleTheme = useCallback(() => {
     setUserState((state) => {
       const next = state.theme === 'dark' ? 'light' : 'dark'
@@ -465,6 +489,41 @@ function StudyDesk({
                     <ShortcutHint keys={['B']} label="Bookmark / unbookmark" />
                     <ShortcutHint keys={['Esc']} label="Close menus" />
                   </div>
+                </div>
+              )}
+            </div>
+            <div className="network-wrap">
+              <button
+                className={`icon-button${networkOpen ? ' active' : ''}`}
+                onClick={openNetwork}
+                type="button"
+                title="Phone access URLs"
+              >
+                <Smartphone size={16} />
+              </button>
+              {networkOpen && (
+                <div className="network-popover" onMouseLeave={() => setNetworkOpen(false)}>
+                  <div className="section-row">
+                    <strong><Wifi size={14} /> Phone access</strong>
+                  </div>
+                  {networkUrls.length === 0 ? (
+                    <small className="muted">No network addresses found</small>
+                  ) : (
+                    <div className="network-list">
+                      {networkUrls.map((url) => (
+                        <button
+                          key={url}
+                          type="button"
+                          className={`network-url-row${copied === url ? ' copied' : ''}`}
+                          onClick={() => copyUrl(url)}
+                        >
+                          <code>{url}</code>
+                          <small>{copied === url ? 'Copied!' : 'Click to copy'}</small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <small className="muted">Open this URL on your phone's browser</small>
                 </div>
               )}
             </div>

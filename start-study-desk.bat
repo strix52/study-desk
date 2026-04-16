@@ -39,6 +39,19 @@ if not exist "dist\index.html" (
   )
 )
 
+:: Check if server is already running on port 4307
+netstat -ano | findstr "LISTENING" | findstr ":4307 " >nul 2>&1
+if not errorlevel 1 (
+  echo Study Desk server is already running.
+  echo.
+  echo   Local:   http://localhost:4307
+  powershell -NoProfile -Command "try{(Invoke-RestMethod http://localhost:4307/api/network).network|%%{Write-Host \"  Network: $_\"}}catch{}" 2>nul
+  echo.
+  start "" "http://localhost:4307"
+  timeout /t 3 /nobreak >nul
+  exit /b 0
+)
+
 start "Study Desk Server" cmd /k "cd /d ""%APP_DIR%"" && npm start"
 
 timeout /t 3 /nobreak >nul

@@ -71,6 +71,11 @@ app.get('/api/file', async (request, response) => {
   }
 })
 
+app.get('/api/network', (_request, response) => {
+  const addresses = getLanAddresses().map(addr => `http://${addr}:${port}`)
+  response.json({ localhost: `http://localhost:${port}`, network: addresses })
+})
+
 app.post('/api/open', async (request, response) => {
   try {
     const { relativePath, action } = request.body ?? {}
