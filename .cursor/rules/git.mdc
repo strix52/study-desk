@@ -1,0 +1,8 @@
+---
+description: Git commit message rules
+alwaysApply: true
+---
+
+NEVER mention the paid course name or instructor name in commit messages.
+The README deliberately avoids naming the course — maintain that in all public-facing text.
+Keep commit messages about what the code does, not what course it's for.

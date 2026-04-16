@@ -42,6 +42,12 @@ One-click launcher: double-click `start-study-desk.bat` (handles deps, build, fi
 
 State flows down via props. Actions memoized with useCallback. Saves debounced 400ms to backend.
 
+## Git Commit Rules
+
+- NEVER mention the paid course name or instructor name in commit messages
+- Keep commit messages about what the code does, not what course it's for
+- The README deliberately avoids naming the course — maintain that in all public-facing text
+
 ## Conventions
 
 - Functional components only, no class components
