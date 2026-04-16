@@ -1,6 +1,7 @@
 # Study Desk — App-Specific Context
 
-Read the root `AGENTS.md` first for safety rules and project overview.
+Read `../AGENTS.md` first for safety rules, commands, and project overview.
+For full version history, see `../CHANGELOG.md`.
 
 ## State Shape (UserState)
 

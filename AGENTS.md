@@ -74,13 +74,19 @@ State flows down via props. Actions memoized with useCallback. Saves debounced 4
 - `build-icon.ps1` — generates study-desk.ico via System.Drawing
 - User runs Windows + PowerShell — heredoc syntax does NOT work; use temp files for multi-line git commits
 
+## Related Context Files
+
+- `study-desk/AGENTS.md` — App-specific: state shape, components, endpoints, CSS, gotchas
+- `CHANGELOG.md` — Full version history if you need to understand past decisions
+- `CLAUDE.md` — Points here (for Claude Code compatibility)
+- `.cursor/rules/` — Cursor-specific scoped rules (safety, VideoPlayer regression, conventions)
+
 ## Working With This Codebase
 
 1. Read this file first
 2. Read `study-desk/AGENTS.md` for app-specific architecture details
-3. Read `CHANGELOG.md` for version history if you need to understand past decisions
-4. Inspect the relevant component before editing
-5. Assume original course content is untouchable
+3. Inspect the relevant component before editing
+4. Assume original course content is untouchable
 
 ## Agent Preferences (learned from user)
 
