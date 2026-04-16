@@ -2,6 +2,7 @@
 # The raw cohort material must never be committed. Keep this
 # rule before anything else so it can't be accidentally overridden.
 /Week - *
+/Harkirat Assignment/
 
 # ── Video / large media files ──
 *.mp4
