@@ -287,6 +287,46 @@ This also works on home Wi-Fi networks — both devices on the same Wi-Fi can re
 - `npm run build` — succeeds
 - Tested on Android phone via USB tethering — full app works, videos play, progress syncs
 
+### v2.5.1 — Phone URL button and smart launcher (COMPLETED)
+
+**Changes made:**
+
+1. **`/api/network` endpoint** (`server/index.mjs`)
+  - `GET /api/network` returns `{ localhost, network: [...urls] }`
+  - Fetches current LAN addresses at call time (reflects network changes without restart)
+
+2. **Phone URL button in topbar** (`App.tsx`, `App.css`)
+  - Smartphone icon button next to the shortcuts button
+  - Click opens a popover listing all network URLs
+  - Each URL is a button — click to copy to clipboard
+  - Shows "Copied!" confirmation with green highlight
+  - Hidden on mobile (only useful on the laptop)
+
+3. **Smart bat file relaunch** (`start-study-desk.bat`)
+  - Checks if port 4307 is already in use via `netstat`
+  - If server is running: prints current Network URLs (fetched via PowerShell `Invoke-RestMethod` from `/api/network`), opens browser, exits
+  - If server is not running: starts server normally
+
+### v2.5.2 — Favicon, title, and Start Menu entry (COMPLETED)
+
+**Changes made:**
+
+1. **Favicon replaced** (`public/favicon.svg`)
+  - Old Vite lightning bolt replaced with the lucide `LibraryBig` icon in accent purple (`#7c5cfc`)
+  - SVG favicon, works in all modern browsers
+
+2. **Page title** (`index.html`)
+  - Changed from "study-desk" to "Study Desk"
+
+3. **Windows Start Menu shortcut** (`create-shortcut.ps1`)
+  - Creates a `.lnk` shortcut in `%APPDATA%\Microsoft\Windows\Start Menu\Programs\`
+  - Points to `start-study-desk.bat` with custom icon
+  - User can search "Study Desk" in Start Menu to launch
+
+4. **Custom ICO icon** (`build-icon.ps1`, `public/study-desk.ico`)
+  - `build-icon.ps1` draws a simplified purple book icon using `System.Drawing` and saves as `.ico`
+  - Used by the Start Menu shortcut
+
 ## 3. Current Status
 
 ### What works
@@ -314,6 +354,9 @@ This also works on home Wi-Fi networks — both devices on the same Wi-Fi can re
 - Week view `Incomplete only` filter
 - Local file/folder/editor open actions
 - Windows Firewall rule auto-added by launcher
+- **Phone URL button** in topbar — click to see and copy network URLs for phone access
+- **Smart launcher** — `start-study-desk.bat` detects running server, shows current URLs instead of failing
+- **Start Menu entry** — searchable "Study Desk" shortcut with custom purple book icon
 - One-click launcher (`start-study-desk.bat`)
 
 ### Verified checks
@@ -372,7 +415,8 @@ Future changes should be limited to:
 - the app folder: `study-desk/`
 - the launcher file: `start-study-desk.bat`
 - the app's generated data/cache/state area (`.study-desk-data/`)
-- root config files: `.gitignore`, `LLM_CONTEXT.md`
+- root config/meta files: `.gitignore`, `LLM_CONTEXT.md`, `AGENTS.md`
+- root scripts: `create-shortcut.ps1`, `build-icon.ps1`
 
 ### If unsure
 
@@ -439,8 +483,11 @@ study-desk/
 ```
 D:\download_extracted\final\Harkirat Cohort 0 - 1\
 ├── .gitignore               ← Excludes *.mp4, node_modules, dist, .study-desk-data, .cursor
+├── AGENTS.md                ← Learned user preferences and workspace facts for future agents
 ├── LLM_CONTEXT.md           ← This file
-└── start-study-desk.bat     ← One-click launcher
+├── start-study-desk.bat     ← One-click launcher (with firewall rule + duplicate detection)
+├── create-shortcut.ps1      ← Creates Windows Start Menu shortcut with custom icon
+└── build-icon.ps1           ← Generates study-desk.ico from System.Drawing
 ```
 
 ### Generated app data
@@ -582,13 +629,14 @@ Avoid:
 
 Safe areas:
 
-- `study-desk/src/`*
+- `study-desk/src/*`
 - `study-desk/server/*`
 - `study-desk/package.json`
 - `study-desk/vite.config.mjs`
 - `start-study-desk.bat`
+- `create-shortcut.ps1`, `build-icon.ps1`
 - `.study-desk-data` format (if migrated carefully)
-- `.gitignore`, `LLM_CONTEXT.md`
+- `.gitignore`, `LLM_CONTEXT.md`, `AGENTS.md`
 
 Unsafe areas (need explicit user approval):
 
