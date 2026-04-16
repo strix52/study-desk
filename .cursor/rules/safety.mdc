@@ -1,0 +1,8 @@
+---
+description: Course content protection rules
+alwaysApply: true
+---
+
+NEVER delete, rename, overwrite, or reorganize anything in `Week - *` folders or `Harkirat Assignment/`.
+These contain original downloaded course content and are strictly READ-ONLY.
+If a change might touch course content, stop and ask the user first.

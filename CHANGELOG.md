@@ -1,8 +1,6 @@
-# LLM Context: Harkirat Cohort Study Desk
+# Changelog: Harkirat Cohort Study Desk
 
-This file is the authoritative handoff context for any future LLM or coding agent working in this workspace.
-
-Read this before making changes.
+Full version history and implementation details. For active agent context, read `AGENTS.md` instead.
 
 ---
 
@@ -415,7 +413,7 @@ Future changes should be limited to:
 - the app folder: `study-desk/`
 - the launcher file: `start-study-desk.bat`
 - the app's generated data/cache/state area (`.study-desk-data/`)
-- root config/meta files: `.gitignore`, `LLM_CONTEXT.md`, `AGENTS.md`
+- root config/meta files: `.gitignore`, `AGENTS.md`, `CHANGELOG.md`, `CLAUDE.md`
 - root scripts: `create-shortcut.ps1`, `build-icon.ps1`
 
 ### If unsure
@@ -483,8 +481,9 @@ study-desk/
 ```
 D:\download_extracted\final\Harkirat Cohort 0 - 1\
 ├── .gitignore               ← Excludes *.mp4, node_modules, dist, .study-desk-data, .cursor
-├── AGENTS.md                ← Learned user preferences and workspace facts for future agents
-├── LLM_CONTEXT.md           ← This file
+├── AGENTS.md                ← Lean agent context (universal, auto-loaded by all tools)
+├── CLAUDE.md                ← Points to AGENTS.md (for Claude Code)
+├── CHANGELOG.md             ← This file (full version history)
 ├── start-study-desk.bat     ← One-click launcher (with firewall rule + duplicate detection)
 ├── create-shortcut.ps1      ← Creates Windows Start Menu shortcut with custom icon
 └── build-icon.ps1           ← Generates study-desk.ico from System.Drawing
@@ -636,7 +635,7 @@ Safe areas:
 - `start-study-desk.bat`
 - `create-shortcut.ps1`, `build-icon.ps1`
 - `.study-desk-data` format (if migrated carefully)
-- `.gitignore`, `LLM_CONTEXT.md`, `AGENTS.md`
+- `.gitignore`, `AGENTS.md`, `CHANGELOG.md`, `CLAUDE.md`
 
 Unsafe areas (need explicit user approval):
 

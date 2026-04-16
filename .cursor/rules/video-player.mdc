@@ -1,0 +1,15 @@
+---
+description: VideoPlayer regression prevention
+globs: ["study-desk/src/components/VideoPlayer.tsx"]
+---
+
+CRITICAL: The unmount cleanup in VideoPlayer MUST defer the onProgress call with setTimeout.
+Synchronous state updates during unmount block React Router transitions (URL changes but content stays stuck).
+
+```ts
+// CORRECT — deferred
+window.setTimeout(() => onProgress(finalPosition, finalDuration), 0)
+
+// WRONG — synchronous, breaks navigation
+onProgress(video.currentTime, video.duration)
+```

@@ -1,0 +1,12 @@
+---
+description: Code conventions for the study-desk app
+globs: ["study-desk/src/**/*.{ts,tsx,css}"]
+---
+
+- Functional components only, no class components
+- No `any` types — use strict TypeScript
+- Plain CSS with custom properties — no CSS-in-JS, no Tailwind, no CSS modules
+- Prop drilling with useCallback/useMemo — no React Context at this scale
+- Mobile breakpoint at 980px in App.css
+- Run `npx eslint src/` and `npx tsc -b --noEmit` before committing
+- User runs Windows + PowerShell — use temp files for multi-line git commits (no heredoc)
